@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senhaHash String   @map("senha_hash")
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  @@map("admins")
+}
+
+model Doador {
+  id           String        @id @default(uuid())
+  nome         String
+  whatsapp     String
+  bairro       String
+  criadoEm     DateTime      @default(now()) @map("criado_em")
+  equipamentos Equipamento[]
+
+  @@map("doadores")
+}
+
+model Equipamento {
+  id           String   @id @default(uuid())
+  doadorId     String   @map("doador_id")
+  categoria    String
+  descricao    String
+  fotoUrl      String?  @map("foto_url")
+  status       String   @default("PENDENTE")
+  destinoFinal String?  @map("destino_final")
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  doador Doador @relation(fields: [doadorId], references: [id])
+
+  @@map("equipamentos")
+}

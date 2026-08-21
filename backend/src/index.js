@@ -1,40 +1,30 @@
 import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import prisma from './lib/prisma.js'; // Em ES Modules, é obrigatório incluir a extensão .js em caminhos locais
 
 const app = express();
+
+app.use(express.json());
+
+app.get('/', async (req, res) => {
+  try {
+    const equipamentos = await prisma.equipamento.findMany();
+    return res.json({
+      sucesso: true,
+      mensagem: "API rodando e conectada ao banco com sucesso! 🚀",
+      totalEquipamentos: equipamentos.length,
+      dados: equipamentos
+    });
+  } catch (erro) {
+    return res.status(500).json({
+      sucesso: false,
+      mensagem: "Erro ao conectar no banco de dados",
+      erro: erro.message
+    });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 
-// Middlewares
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173'
-}));
-app.use(express.json()); // Permite o Express entender JSON no corpo da requisição
-
-// Rota de teste (Healthcheck)
-app.get('/', (req, res) => {
-  return res.json({
-    sucesso: true,
-    mensagem: "API do Reconecta rodando com sucesso! 🚀"
-  });
-});
-
-// Rota mockada de categorias para o Front já ir testando
-app.get('/categorias', (req, res) => {
-  const categorias = [
-    "Monitor", 
-    "Placa-mãe", 
-    "Notebook", 
-    "Computador completo", 
-    "Periférico", 
-    "Outros"
-  ];
-  return res.json({ sucesso: true, dados: categorias });
-});
-
-// Inicialização do Servidor
 app.listen(PORT, () => {
-  console.log(`🟢 Servidor rodando na porta http://localhost:${PORT}`);
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
