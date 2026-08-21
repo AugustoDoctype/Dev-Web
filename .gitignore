@@ -1,0 +1,15 @@
+# Dependências do Node (Front e Back)
+node_modules/
+**/node_modules/
+
+# Pastas de build/produção
+dist/
+build/
+
+# Variáveis de ambiente (senhas e chaves)
+.env
+.env.local
+
+# Logs e arquivos do sistema
+*.log
+.DS_Store
