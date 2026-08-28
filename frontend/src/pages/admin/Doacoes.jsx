@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 
 function Doacoes() {
   const [doacoes, setDoacoes] = useState([])
+  const [filtroStatus, setFiltroStatus] = useState('Todos')
+  const [busca, setBusca] = useState('')
 
   useEffect(() => {
     carregarDoacoes()
@@ -45,14 +47,30 @@ function Doacoes() {
     (doacao) => doacao.status === 'Rejeitada'
   ).length
 
+  const doacoesFiltradas = doacoes.filter((doacao) => {
+    const correspondeStatus =
+      filtroStatus === 'Todos' ||
+      doacao.status === filtroStatus
+
+    const correspondeBusca =
+      doacao.equipamento
+        .toLowerCase()
+        .includes(busca.toLowerCase())
+
+    return correspondeStatus && correspondeBusca
+  })
+
   return (
     <div className="min-h-screen bg-gray-100">
 
       {/* Cabeçalho */}
+
       <header className="bg-green-700 text-white">
+
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
 
           <div>
+
             <h1 className="text-2xl font-bold">
               E-Ciclo
             </h1>
@@ -60,6 +78,7 @@ function Doacoes() {
             <p className="text-green-100 text-sm">
               Painel Administrativo
             </p>
+
           </div>
 
           <Link
@@ -70,12 +89,15 @@ function Doacoes() {
           </Link>
 
         </div>
+
       </header>
 
       {/* Conteúdo */}
+
       <main className="max-w-7xl mx-auto px-6 py-10">
 
         <div className="mb-8">
+
           <h2 className="text-3xl font-bold text-gray-800">
             Doações
           </h2>
@@ -83,12 +105,15 @@ function Doacoes() {
           <p className="text-gray-600 mt-2">
             Visualize e gerencie as doações cadastradas.
           </p>
+
         </div>
 
         {/* Cards */}
+
         <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
           <div className="bg-white rounded-xl shadow-sm p-6">
+
             <p className="text-gray-500 text-sm">
               Total de doações
             </p>
@@ -96,9 +121,11 @@ function Doacoes() {
             <h3 className="text-3xl font-bold text-gray-800 mt-2">
               {totalDoacoes}
             </h3>
+
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6">
+
             <p className="text-gray-500 text-sm">
               Pendentes
             </p>
@@ -106,9 +133,11 @@ function Doacoes() {
             <h3 className="text-3xl font-bold text-yellow-600 mt-2">
               {pendentes}
             </h3>
+
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6">
+
             <p className="text-gray-500 text-sm">
               Aprovadas
             </p>
@@ -116,9 +145,11 @@ function Doacoes() {
             <h3 className="text-3xl font-bold text-green-600 mt-2">
               {aprovadas}
             </h3>
+
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6">
+
             <p className="text-gray-500 text-sm">
               Rejeitadas
             </p>
@@ -126,34 +157,115 @@ function Doacoes() {
             <h3 className="text-3xl font-bold text-red-600 mt-2">
               {rejeitadas}
             </h3>
+
+          </div>
+
+        </section>
+
+        {/* Filtros */}
+
+        <section className="bg-white rounded-xl shadow-sm p-6 mb-6">
+
+          <div className="grid md:grid-cols-2 gap-4">
+
+            {/* Busca */}
+
+            <div>
+
+              <label
+                htmlFor="busca"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Buscar equipamento
+              </label>
+
+              <input
+                id="busca"
+                type="text"
+                value={busca}
+                onChange={(event) =>
+                  setBusca(event.target.value)
+                }
+                placeholder="Ex: placa de vídeo"
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600"
+              />
+
+            </div>
+
+            {/* Status */}
+
+            <div>
+
+              <label
+                htmlFor="status"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Filtrar por status
+              </label>
+
+              <select
+                id="status"
+                value={filtroStatus}
+                onChange={(event) =>
+                  setFiltroStatus(event.target.value)
+                }
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600"
+              >
+
+                <option value="Todos">
+                  Todos
+                </option>
+
+                <option value="Pendente">
+                  Pendentes
+                </option>
+
+                <option value="Aprovada">
+                  Aprovadas
+                </option>
+
+                <option value="Rejeitada">
+                  Rejeitadas
+                </option>
+
+              </select>
+
+            </div>
+
           </div>
 
         </section>
 
         {/* Lista */}
+
         <section className="bg-white rounded-xl shadow-sm overflow-hidden">
 
           <div className="p-6 border-b">
+
             <h3 className="text-xl font-bold text-gray-800">
               Doações cadastradas
             </h3>
+
+            <p className="text-sm text-gray-500 mt-1">
+              {doacoesFiltradas.length} doação(ões) encontrada(s)
+            </p>
+
           </div>
 
-          {doacoes.length === 0 ? (
+          {doacoesFiltradas.length === 0 ? (
 
             <div className="p-10 text-center">
 
               <div className="text-5xl mb-4">
-                📦
+                🔍
               </div>
 
               <h3 className="text-xl font-bold text-gray-700 mb-2">
-                Nenhuma doação cadastrada
+                Nenhuma doação encontrada
               </h3>
 
               <p className="text-gray-500">
-                Quando os usuários cadastrarem equipamentos,
-                eles aparecerão nesta área.
+                Tente alterar a busca ou o filtro de status.
               </p>
 
             </div>
@@ -198,7 +310,7 @@ function Doacoes() {
 
                 <tbody>
 
-                  {doacoes.map((doacao) => (
+                  {doacoesFiltradas.map((doacao) => (
 
                     <tr
                       key={doacao.id}
@@ -239,43 +351,48 @@ function Doacoes() {
 
                       <td className="px-6 py-4">
 
-                        {doacao.status === 'Pendente' ? (
+                        <div className="flex flex-wrap gap-2">
 
-                          <div className="flex gap-2">
+                          <Link
+                            to={`/admin/doacoes/${doacao.id}`}
+                            className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
+                          >
+                            Ver detalhes
+                          </Link>
 
-                            <button
-                              onClick={() =>
-                                atualizarStatus(
-                                  doacao.id,
-                                  'Aprovada'
-                                )
-                              }
-                              className="bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition"
-                            >
-                              Aprovar
-                            </button>
+                          {doacao.status === 'Pendente' && (
 
-                            <button
-                              onClick={() =>
-                                atualizarStatus(
-                                  doacao.id,
-                                  'Rejeitada'
-                                )
-                              }
-                              className="bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
-                            >
-                              Rejeitar
-                            </button>
+                            <>
 
-                          </div>
+                              <button
+                                onClick={() =>
+                                  atualizarStatus(
+                                    doacao.id,
+                                    'Aprovada'
+                                  )
+                                }
+                                className="bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition"
+                              >
+                                Aprovar
+                              </button>
 
-                        ) : (
+                              <button
+                                onClick={() =>
+                                  atualizarStatus(
+                                    doacao.id,
+                                    'Rejeitada'
+                                  )
+                                }
+                                className="bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
+                              >
+                                Rejeitar
+                              </button>
 
-                          <span className="text-gray-400 text-sm">
-                            Sem ações
-                          </span>
+                            </>
 
-                        )}
+                          )}
+
+                        </div>
 
                       </td>
 
@@ -294,6 +411,7 @@ function Doacoes() {
         </section>
 
       </main>
+
     </div>
   )
 }

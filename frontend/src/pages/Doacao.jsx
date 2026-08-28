@@ -24,9 +24,19 @@ function Doacao() {
   function handleSubmit(event) {
     event.preventDefault()
 
+    const quantidade = Number(formulario.quantidade)
+
+    if (quantidade < 1) {
+      alert('A quantidade deve ser pelo menos 1.')
+      return
+    }
+
     const doacao = {
       id: Date.now(),
-      ...formulario,
+      categoria: formulario.categoria,
+      equipamento: formulario.equipamento,
+      quantidade: quantidade,
+      observacao: formulario.observacao,
       status: 'Pendente',
       data: new Date().toLocaleDateString('pt-BR'),
     }
@@ -49,10 +59,13 @@ function Doacao() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
+
         <div className="bg-white rounded-2xl shadow-md p-8">
+
           <h1 className="text-3xl font-bold text-green-700 mb-2">
             Faça sua doação
           </h1>
@@ -64,7 +77,9 @@ function Doacao() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
+            {/* Categoria */}
             <div>
+
               <label
                 htmlFor="categoria"
                 className="block text-sm font-semibold text-gray-700 mb-2"
@@ -79,49 +94,54 @@ function Doacao() {
                 required
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600"
               >
+
                 <option value="">
                   Selecione uma categoria
                 </option>
 
-                <option value="computadores">
+                <option value="Computadores e notebooks">
                   Computadores e notebooks
                 </option>
 
-                <option value="pecas">
+                <option value="Peças de computador">
                   Peças de computador
                 </option>
 
-                <option value="perifericos">
+                <option value="Periféricos">
                   Periféricos
                 </option>
 
-                <option value="videogames">
+                <option value="Videogames e consoles">
                   Videogames e consoles
                 </option>
 
-                <option value="tv">
+                <option value="TVs e monitores">
                   TVs e monitores
                 </option>
 
-                <option value="celulares">
+                <option value="Celulares e tablets">
                   Celulares e tablets
                 </option>
 
-                <option value="impressoras">
+                <option value="Impressoras">
                   Impressoras
                 </option>
 
-                <option value="cabos">
+                <option value="Cabos, fontes e carregadores">
                   Cabos, fontes e carregadores
                 </option>
 
-                <option value="outros">
+                <option value="Outros equipamentos eletrônicos">
                   Outros equipamentos eletrônicos
                 </option>
+
               </select>
+
             </div>
 
+            {/* Equipamento */}
             <div>
+
               <label
                 htmlFor="equipamento"
                 className="block text-sm font-semibold text-gray-700 mb-2"
@@ -138,9 +158,12 @@ function Doacao() {
                 placeholder="Ex: Placa de vídeo RTX 4060"
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600"
               />
+
             </div>
 
+            {/* Quantidade */}
             <div>
+
               <label
                 htmlFor="quantidade"
                 className="block text-sm font-semibold text-gray-700 mb-2"
@@ -154,13 +177,17 @@ function Doacao() {
                 value={formulario.quantidade}
                 onChange={handleChange}
                 min="1"
+                step="1"
                 required
                 placeholder="Digite a quantidade"
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600"
               />
+
             </div>
 
+            {/* Observação */}
             <div>
+
               <label
                 htmlFor="observacao"
                 className="block text-sm font-semibold text-gray-700 mb-2"
@@ -175,10 +202,13 @@ function Doacao() {
                 rows="4"
                 placeholder="Ex: Equipamento usado, mas funcionando normalmente."
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-              ></textarea>
+              />
+
             </div>
 
+            {/* Botões */}
             <div className="flex gap-4">
+
               <Link
                 to="/"
                 className="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-100 transition"
@@ -192,11 +222,15 @@ function Doacao() {
               >
                 Confirmar doação
               </button>
+
             </div>
 
           </form>
+
         </div>
+
       </main>
+
     </div>
   )
 }
