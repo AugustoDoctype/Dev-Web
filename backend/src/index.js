@@ -233,6 +233,69 @@ app.get('/equipamentos', verificarToken, async (req, res) => {
   }
 });
 
+// ==========================================
+// ROTA PROTEGIDA: ATUALIZAR EQUIPAMENTO
+// ==========================================
+app.put('/equipamentos/:id', verificarToken, async (req, res) => {
+  try {
+    // Extrai o ID direto da URL
+    const { id } = req.params; 
+    
+    // Extrai os dados que o admin quer alterar
+    const { status, descricao, destinoFinal } = req.body;
+
+    // Pede ao Prisma para encontrar o equipamento pelo ID e atualizar os campos
+    const equipamentoAtualizado = await prisma.equipamento.update({
+      where: { id },
+      data: {
+        status,
+        descricao,
+        destinoFinal
+      }
+    });
+
+    return res.status(200).json({
+      sucesso: true,
+      mensagem: "Status do equipamento atualizado com sucesso!",
+      dados: equipamentoAtualizado
+    });
+
+  } catch (erro) {
+    // Se o Prisma não achar o ID, ele cai no catch
+    return res.status(500).json({ 
+      erro: "Erro ao atualizar equipamento. Verifique se o ID está correto.", 
+      detalhes: erro.message 
+    });
+  }
+});
+
+// ==========================================
+// ROTA PROTEGIDA: DELETAR EQUIPAMENTO
+// ==========================================
+app.delete('/equipamentos/:id', verificarToken, async (req, res) => {
+  try {
+    // 1. Pega o ID que vem na URL
+    const { id } = req.params;
+
+    // 2. Manda o Prisma deletar o registro correspondente
+    await prisma.equipamento.delete({
+      where: { id }
+    });
+
+    // 3. Retorna sucesso (sem dados, pois o item não existe mais)
+    return res.status(200).json({
+      sucesso: true,
+      mensagem: "Equipamento excluído com sucesso!"
+    });
+
+  } catch (erro) {
+    return res.status(500).json({ 
+      erro: "Erro ao excluir equipamento. Verifique se o ID existe.", 
+      detalhes: erro.message 
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
