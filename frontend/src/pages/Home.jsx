@@ -1,127 +1,85 @@
 import { Link } from 'react-router-dom'
 import Navbar from '../components/public/Navbar'
+import heroImage from '../assets/hero.png'
 
-function Home() {
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar />
 
-      {/* Seção principal */}
-      <main>
-        <section className="bg-green-700 text-white">
-          <div className="max-w-6xl mx-auto px-6 py-20">
-            <div className="max-w-3xl">
-              <p className="text-green-200 font-semibold mb-3">
-                DESCARTE CONSCIENTE
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 flex flex-col md:flex-row items-center gap-12">
+          <div className="flex-1 text-center md:text-left">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight">
+              Descarte consciente de <span className="text-emerald-600">eletrônicos</span>.
+            </h1>
+            <p className="mt-6 text-lg text-slate-600 max-w-xl">
+              Dê um destino correto aos seus aparelhos antigos. Nós conectamos quem quer doar com a reciclagem e reutilização responsável.
+            </p>
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              <Link
+                to="/doar"
+                className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition text-center"
+              >
+                Quero Doar
+              </Link>
+              <Link
+                to="/como-funciona"
+                className="px-8 py-3 bg-white hover:bg-slate-100 text-slate-700 font-semibold rounded-lg border border-slate-300 transition text-center"
+              >
+                Como Funciona
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex-1 w-full max-w-md md:max-w-none flex justify-center">
+            <img
+              src={heroImage}
+              alt="Ilustração do E-Ciclo sobre reciclagem de eletrônicos"
+              className="w-full h-auto max-h-[400px] object-contain drop-shadow-lg"
+            />
+          </div>
+        </section>
+
+        {/* Informações adicionais */}
+        <section className="bg-white py-16 border-t border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold text-slate-900">Por que escolher o E-Ciclo?</h2>
+              <p className="mt-4 text-slate-600">
+                O lixo eletrônico é um dos maiores desafios ambientais modernos. Com a nossa plataforma, você garante que seus aparelhos tenham o destino certo de forma simples e transparente.
               </p>
+            </div>
 
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-                Dê um novo destino aos seus eletrônicos.
-              </h1>
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="p-6 bg-slate-50 rounded-xl border border-slate-100 shadow-sm text-center">
+                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center mx-auto text-xl font-bold">1</div>
+                <h3 className="mt-4 text-xl font-semibold text-slate-900">Cadastre o Item</h3>
+                <p className="mt-2 text-slate-600 text-sm">
+                  Preencha os dados do equipamento eletrônico que deseja doar ou descartar.
+                </p>
+              </div>
 
-              <p className="text-lg md:text-xl text-green-100 mb-8">
-                O E-Ciclo conecta pessoas a soluções para o descarte
-                correto de equipamentos eletroeletrônicos.
-              </p>
+              <div className="p-6 bg-slate-50 rounded-xl border border-slate-100 shadow-sm text-center">
+                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center mx-auto text-xl font-bold">2</div>
+                <h3 className="mt-4 text-xl font-semibold text-slate-900">Análise do Descarte</h3>
+                <p className="mt-2 text-slate-600 text-sm">
+                  Nossa equipe avalia o estado do aparelho e encaminha para reutilização ou reciclagem.
+                </p>
+              </div>
 
-              <div className="flex flex-wrap gap-4">
-                <Link
-                  to="/doacao"
-                  className="bg-white text-green-700 px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
-                >
-                  Fazer uma doação
-                </Link>
-
-                <Link
-                  to="/como-funciona"
-                  className="border border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition"
-                >
-                  Como funciona
-                </Link>
+              <div className="p-6 bg-slate-50 rounded-xl border border-slate-100 shadow-sm text-center">
+                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center mx-auto text-xl font-bold">3</div>
+                <h3 className="mt-4 text-xl font-semibold text-slate-900">Acompanhamento</h3>
+                <p className="mt-2 text-slate-600 text-sm">
+                  Acompanhe em tempo real o status da sua doação pela aba "Minhas Doações".
+                </p>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* Sobre o E-Ciclo */}
-        <section className="max-w-6xl mx-auto px-6 py-16">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              O que é o E-Ciclo?
-            </h2>
-
-            <p className="text-gray-600 text-lg">
-              Uma plataforma criada para facilitar o descarte
-              responsável de equipamentos eletrônicos e elétricos,
-              conectando pessoas aos pontos de coleta.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="text-4xl mb-4">💻</div>
-
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                Equipamentos
-              </h3>
-
-              <p className="text-gray-600">
-                Computadores, notebooks, peças, periféricos e
-                outros equipamentos eletrônicos.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="text-4xl mb-4">🎮</div>
-
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                Eletrônicos
-              </h3>
-
-              <p className="text-gray-600">
-                Videogames, televisores, monitores, celulares e
-                diversos aparelhos eletrônicos.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="text-4xl mb-4">♻️</div>
-
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                Descarte correto
-              </h3>
-
-              <p className="text-gray-600">
-                Ajude a reduzir o descarte inadequado e contribua
-                para um destino mais responsável.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Chamada para ação */}
-        <section className="bg-gray-100">
-          <div className="max-w-6xl mx-auto px-6 py-16 text-center">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              Tem um eletrônico que não usa mais?
-            </h2>
-
-            <p className="text-gray-600 mb-8">
-              Cadastre seu equipamento e encontre uma forma
-              adequada de encaminhá-lo para a coleta.
-            </p>
-
-            <Link
-              to="/doacao"
-              className="inline-block bg-green-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-800 transition"
-            >
-              Quero fazer uma doação
-            </Link>
           </div>
         </section>
       </main>
     </div>
   )
 }
-
-export default Home

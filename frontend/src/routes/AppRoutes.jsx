@@ -1,97 +1,35 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 
+// Páginas Públicas
 import Home from '../pages/Home'
-import ComoFunciona from '../pages/ComoFunciona'
 import Doacao from '../pages/Doacao'
-import Confirmacao from '../pages/Confirmacao'
+import ComoFunciona from '../pages/ComoFunciona'
 import MinhasDoacoes from '../pages/MinhasDoacoes'
 import DetalhesMinhaDoacao from '../pages/DetalhesMinhaDoacao'
+import Confirmacao from '../pages/Confirmacao'
 
-import Login from '../pages/admin/Login'
-import Dashboard from '../pages/admin/Dashboard'
-import Doacoes from '../pages/admin/Doacoes'
-import DetalhesDoacao from '../pages/admin/DetalhesDoacao'
+// Páginas Administrativas
+import LoginAdmin from '../pages/admin/Login'
+import DashboardAdmin from '../pages/admin/Dashboard'
+import DoacoesAdmin from '../pages/admin/Doacoes'
+import DetalhesDoacaoAdmin from '../pages/admin/DetalhesDoacao'
 
-import ProtectedRoute from '../components/auth/ProtectedRoute'
-
-function AppRoutes() {
+export default function AppRoutes() {
   return (
-    <BrowserRouter>
+    <Routes>
+      {/* Rotas Públicas */}
+      <Route path="/" element={<Home />} />
+      <Route path="/doar" element={<Doacao />} />
+      <Route path="/como-funciona" element={<ComoFunciona />} />
+      <Route path="/minhas-doacoes" element={<MinhasDoacoes />} />
+      <Route path="/minhas-doacoes/:id" element={<DetalhesMinhaDoacao />} />
+      <Route path="/confirmacao" element={<Confirmacao />} />
 
-      <Routes>
-
-        {/* Páginas públicas */}
-
-        <Route
-          path="/"
-          element={<Home />}
-        />
-
-        <Route
-          path="/como-funciona"
-          element={<ComoFunciona />}
-        />
-
-        <Route
-          path="/doacao"
-          element={<Doacao />}
-        />
-
-        <Route
-          path="/confirmacao"
-          element={<Confirmacao />}
-        />
-
-        <Route
-          path="/minhas-doacoes"
-          element={<MinhasDoacoes />}
-        />
-
-        <Route
-          path="/minhas-doacoes/:id"
-          element={<DetalhesMinhaDoacao />}
-        />
-
-        {/* Login administrativo */}
-
-        <Route
-          path="/admin/login"
-          element={<Login />}
-        />
-
-        {/* Área administrativa protegida */}
-
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/doacoes"
-          element={
-            <ProtectedRoute>
-              <Doacoes />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/doacoes/:id"
-          element={
-            <ProtectedRoute>
-              <DetalhesDoacao />
-            </ProtectedRoute>
-          }
-        />
-
-      </Routes>
-
-    </BrowserRouter>
+      {/* Rotas Admin */}
+      <Route path="/admin/login" element={<LoginAdmin />} />
+      <Route path="/admin/dashboard" element={<DashboardAdmin />} />
+      <Route path="/admin/doacoes" element={<DoacoesAdmin />} />
+      <Route path="/admin/doacoes/:id" element={<DetalhesDoacaoAdmin />} />
+    </Routes>
   )
 }
-
-export default AppRoutes

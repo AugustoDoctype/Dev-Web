@@ -1,54 +1,19 @@
 import { Link } from 'react-router-dom'
 
-function Navbar() {
+export default function Navbar() {
   return (
-    <nav className="bg-green-700 text-white px-6 py-4">
-
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
-
-        <Link
-          to="/"
-          className="text-2xl font-bold"
-        >
+    <nav className="bg-white shadow-sm border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <Link to="/" className="text-xl font-bold text-emerald-600">
           E-Ciclo
         </Link>
-
-        <div className="flex gap-6">
-
-          <Link
-            to="/"
-            className="hover:text-green-200 transition"
-          >
-            Início
-          </Link>
-
-          <Link
-            to="/como-funciona"
-            className="hover:text-green-200 transition"
-          >
-            Como Funciona
-          </Link>
-
-          <Link
-            to="/doacao"
-            className="hover:text-green-200 transition"
-          >
-            Doar
-          </Link>
-
-          <Link
-            to="/minhas-doacoes"
-            className="hover:text-green-200 transition"
-          >
-            Minhas Doações
-          </Link>
-
+        <div className="flex gap-6 text-sm font-medium text-gray-600">
+          <Link to="/" className="hover:text-emerald-600 transition">Início</Link>
+          <Link to="/doar" className="hover:text-emerald-600 transition">Fazer Doação</Link>
+          <Link to="/como-funciona" className="hover:text-emerald-600 transition">Como Funciona</Link>
+          <Link to="/minhas-doacoes" className="hover:text-emerald-600 transition">Minhas Doações</Link>
         </div>
-
       </div>
-
     </nav>
   )
 }
-
-export default Navbar
