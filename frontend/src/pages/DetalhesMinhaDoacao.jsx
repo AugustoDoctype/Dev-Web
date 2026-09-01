@@ -1,234 +1,75 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
+import Navbar from '../components/public/Navbar'
 
-function DetalhesMinhaDoacao() {
+export default function DetalhesMinhaDoacao() {
   const { id } = useParams()
-
   const [doacao, setDoacao] = useState(null)
 
   useEffect(() => {
-    const doacoesSalvas = JSON.parse(
-      localStorage.getItem('doacoes') || '[]'
-    )
-
-    const doacaoEncontrada = doacoesSalvas.find(
-      (item) => String(item.id) === String(id)
-    )
-
-    setDoacao(doacaoEncontrada)
+    const doacoes = JSON.parse(localStorage.getItem('mock_doacoes') || '[]')
+    const itemEncontrado = doacoes.find((item) => item.id === id)
+    setDoacao(itemEncontrado)
   }, [id])
 
-  if (!doacao) {
-    return (
-      <div className="min-h-screen bg-gray-50">
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      <Navbar />
 
-        <header className="bg-green-700 text-white">
-          <div className="max-w-6xl mx-auto px-6 py-5">
-
-            <Link
-              to="/"
-              className="text-2xl font-bold"
-            >
-              E-Ciclo
-            </Link>
-
-          </div>
-        </header>
-
-        <main className="max-w-4xl mx-auto px-6 py-16">
-
-          <div className="bg-white rounded-2xl shadow-sm p-10 text-center">
-
-            <div className="text-5xl mb-4">
-              📦
-            </div>
-
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              Doação não encontrada
-            </h2>
-
-            <p className="text-gray-500 mb-6">
-              Não foi possível encontrar essa doação.
+      <main className="flex-1 max-w-2xl mx-auto px-4 py-12 w-full">
+        {!doacao ? (
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center">
+            <h2 className="text-lg font-bold text-slate-800">Doação não encontrada</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              O código informado não corresponde a nenhum registro local.
             </p>
-
             <Link
               to="/minhas-doacoes"
-              className="inline-block bg-green-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-800 transition"
+              className="mt-6 inline-block text-emerald-600 font-semibold text-sm hover:underline"
             >
-              Voltar para minhas doações
+              ← Voltar para Minhas Doações
             </Link>
-
           </div>
-
-        </main>
-
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-
-      {/* Cabeçalho */}
-      <header className="bg-green-700 text-white">
-
-        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
-
-          <div>
-
-            <Link
-              to="/"
-              className="text-2xl font-bold"
-            >
-              E-Ciclo
-            </Link>
-
-            <p className="text-green-100 text-sm">
-              Detalhes da Doação
-            </p>
-
-          </div>
-
-          <Link
-            to="/minhas-doacoes"
-            className="bg-white text-green-700 px-4 py-2 rounded-lg font-semibold hover:bg-green-50 transition"
-          >
-            Voltar
-          </Link>
-
-        </div>
-
-      </header>
-
-      {/* Conteúdo */}
-      <main className="max-w-4xl mx-auto px-6 py-10">
-
-        <div className="mb-8">
-
-          <h1 className="text-3xl font-bold text-gray-800">
-            Detalhes da Doação
-          </h1>
-
-          <p className="text-gray-600 mt-2">
-            Confira todas as informações cadastradas.
-          </p>
-
-        </div>
-
-        {/* Status */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-
-          <div className="flex items-center justify-between">
-
-            <h2 className="text-xl font-bold text-gray-800">
-              Status da doação
-            </h2>
-
-            <span
-              className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                doacao.status === 'Aprovada'
-                  ? 'bg-green-100 text-green-700'
-                  : doacao.status === 'Rejeitada'
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-yellow-100 text-yellow-700'
-              }`}
-            >
-              {doacao.status}
-            </span>
-
-          </div>
-
-        </div>
-
-        {/* Informações */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-
-          <h2 className="text-xl font-bold text-gray-800 mb-6">
-            Informações do equipamento
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-6">
-
-            <div>
-              <p className="text-sm text-gray-500 mb-1">
-                Equipamento
-              </p>
-
-              <p className="text-lg font-semibold text-gray-800">
-                {doacao.equipamento}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500 mb-1">
-                Categoria
-              </p>
-
-              <p className="text-lg font-semibold text-gray-800">
-                {doacao.categoria}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500 mb-1">
-                Quantidade
-              </p>
-
-              <p className="text-lg font-semibold text-gray-800">
-                {doacao.quantidade}
-              </p>
-            </div>
-
-            {doacao.data && (
+        ) : (
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
               <div>
-                <p className="text-sm text-gray-500 mb-1">
-                  Data
-                </p>
-
-                <p className="text-lg font-semibold text-gray-800">
-                  {doacao.data}
-                </p>
+                <span className="text-xs font-mono font-bold text-slate-400">CÓDIGO DA DOAÇÃO</span>
+                <h1 className="text-2xl font-black text-slate-900 font-mono">{doacao.id}</h1>
               </div>
-            )}
-
-          </div>
-
-          {doacao.observacao && (
-            <div className="mt-8">
-
-              <p className="text-sm text-gray-500 mb-2">
-                Observação
-              </p>
-
-              <div className="bg-gray-50 rounded-lg p-4">
-
-                <p className="text-gray-700">
-                  {doacao.observacao}
-                </p>
-
-              </div>
-
+              <span className="px-3 py-1 bg-amber-50 text-amber-700 font-semibold text-xs rounded-full border border-amber-200">
+                {doacao.status}
+              </span>
             </div>
-          )}
 
-        </div>
+            <div className="space-y-4 text-sm text-slate-700">
+              <div>
+                <strong className="block text-slate-900">Equipamento:</strong>
+                <span>{doacao.equipamento}</span>
+              </div>
+              <div>
+                <strong className="block text-slate-900">Doador:</strong>
+                <span>{doacao.nomeDoador}</span>
+              </div>
+              <div>
+                <strong className="block text-slate-900">Endereço de Coleta:</strong>
+                <span>
+                  {doacao.rua}, {doacao.numero} - {doacao.bairro} ({doacao.cidade}/{doacao.estado})
+                </span>
+              </div>
+            </div>
 
-        {/* Voltar */}
-        <div className="mt-6">
-
-          <Link
-            to="/minhas-doacoes"
-            className="text-green-700 font-semibold hover:underline"
-          >
-            ← Voltar para minhas doações
-          </Link>
-
-        </div>
-
+            <div className="mt-8 pt-4 border-t border-slate-100 flex justify-between items-center">
+              <Link
+                to="/minhas-doacoes"
+                className="text-emerald-600 font-semibold text-xs hover:underline"
+              >
+                ← Voltar
+              </Link>
+            </div>
+          </div>
+        )}
       </main>
-
     </div>
   )
 }
-
-export default DetalhesMinhaDoacao

@@ -1,184 +1,54 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import Navbar from '../components/public/Navbar'
 
-function Confirmacao() {
-  const [doacao, setDoacao] = useState(null)
-
-  useEffect(() => {
-    const doacoesSalvas = JSON.parse(
-      localStorage.getItem('doacoes') || '[]'
-    )
-
-    if (doacoesSalvas.length > 0) {
-      const ultimaDoacao =
-        doacoesSalvas[doacoesSalvas.length - 1]
-
-      setDoacao(ultimaDoacao)
-    }
-  }, [])
-
-  function classeStatus(status) {
-    if (status === 'Aprovada') {
-      return 'bg-green-100 text-green-700'
-    }
-
-    if (status === 'Rejeitada') {
-      return 'bg-red-100 text-red-700'
-    }
-
-    return 'bg-yellow-100 text-yellow-700'
-  }
+export default function Confirmacao() {
+  const location = useLocation()
+  const doacao = location.state?.doacao
 
   return (
-    <div className="min-h-screen bg-gray-50">
-
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar />
 
-      <main className="max-w-3xl mx-auto px-6 py-20">
-
-        <div className="bg-white rounded-2xl shadow-md p-10">
-
-          {/* Ícone */}
-
-          <div className="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
-
-            <span className="text-4xl text-green-700">
-              ✓
-            </span>
-
+      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-12 flex flex-col justify-center">
+        <div className="bg-white p-8 sm:p-10 rounded-2xl shadow-sm border border-slate-200 text-center">
+          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl font-bold">
+            ✓
           </div>
 
-          {/* Título */}
-
-          <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-4">
-            Doação realizada com sucesso!
+          <h1 className="mt-6 text-2xl sm:text-3xl font-extrabold text-slate-900">
+            Doação Cadastrada com Sucesso!
           </h1>
-
-          <p className="text-gray-600 text-lg text-center max-w-xl mx-auto mb-8">
-            Obrigado por contribuir com o E-Ciclo. Sua iniciativa
-            ajuda a dar um destino mais responsável aos equipamentos
-            eletroeletrônicos.
+          <p className="mt-2 text-slate-600 text-sm">
+            Obrigado por colaborar com o descarte consciente no E-Ciclo.
           </p>
 
-          {/* Informações */}
-
           {doacao && (
-
-            <div className="bg-gray-50 rounded-xl p-6 mb-8">
-
-              <h2 className="text-xl font-bold text-gray-800 mb-5">
-                Resumo da doação
-              </h2>
-
-              <div className="space-y-4">
-
-                <div>
-                  <p className="text-sm text-gray-500">
-                    Equipamento
-                  </p>
-
-                  <p className="font-semibold text-gray-800">
-                    {doacao.equipamento}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500">
-                    Categoria
-                  </p>
-
-                  <p className="font-semibold text-gray-800">
-                    {doacao.categoria}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500">
-                    Quantidade
-                  </p>
-
-                  <p className="font-semibold text-gray-800">
-                    {doacao.quantidade}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500">
-                    Data
-                  </p>
-
-                  <p className="font-semibold text-gray-800">
-                    {doacao.data}
-                  </p>
-                </div>
-
-                <div>
-
-                  <p className="text-sm text-gray-500">
-                    Status
-                  </p>
-
-                  <span
-                    className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-semibold ${classeStatus(
-                      doacao.status
-                    )}`}
-                  >
-                    {doacao.status}
-                  </span>
-
-                </div>
-
-              </div>
-
+            <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-left space-y-2 text-sm text-slate-700">
+              <p><strong>Item:</strong> {doacao.equipamento}</p>
+              <p><strong>Doador:</strong> {doacao.nomeDoador}</p>
+              <p><strong>Status Inicial:</strong> <span className="inline-block px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-medium text-xs">Pendente</span></p>
+              {doacao.id && (
+                <p><strong>Código da Doação:</strong> <span className="font-mono bg-slate-200 px-2 py-0.5 rounded text-slate-900 font-bold">{doacao.id}</span></p>
+              )}
             </div>
-
           )}
 
-          {/* Aviso */}
-
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-8">
-
-            <p className="text-yellow-800 text-sm">
-              ⏳ Sua doação será analisada pela equipe do E-Ciclo.
-              Você poderá acompanhar o status em Minhas Doações.
-            </p>
-
-          </div>
-
-          {/* Botões */}
-
-          <div className="flex flex-wrap justify-center gap-4">
-
-            <Link
-              to="/"
-              className="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-100 transition"
-            >
-              Voltar para o início
-            </Link>
-
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/minhas-doacoes"
-              className="px-6 py-3 bg-green-700 text-white rounded-lg font-semibold hover:bg-green-800 transition"
+              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow transition text-center"
             >
-              Minhas Doações
+              Acompanhar Minhas Doações
             </Link>
-
             <Link
-              to="/doacao"
-              className="px-6 py-3 border border-green-700 text-green-700 rounded-lg font-semibold hover:bg-green-50 transition"
+              to="/"
+              className="px-6 py-3 bg-white hover:bg-slate-100 text-slate-700 font-semibold rounded-lg border border-slate-300 transition text-center"
             >
-              Fazer outra doação
+              Voltar ao Início
             </Link>
-
           </div>
-
         </div>
-
       </main>
-
     </div>
   )
 }
-
-export default Confirmacao

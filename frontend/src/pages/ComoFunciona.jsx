@@ -1,164 +1,60 @@
 import { Link } from 'react-router-dom'
 import Navbar from '../components/public/Navbar'
 
-function ComoFunciona() {
+export default function ComoFunciona() {
+  const passos = [
+    {
+      numero: '01',
+      titulo: 'Cadastre seu Equipamento',
+      descricao: 'Preencha o formulário informando o tipo do eletrônico, estado de conservação e endereço de coleta.'
+    },
+    {
+      numero: '02',
+      titulo: 'Triagem e Agendamento',
+      descricao: 'Nossa equipe analisa as informações e agenda a melhor data para recolher o item na sua residência.'
+    },
+    {
+      numero: '03',
+      titulo: 'Descarte e Reciclagem Correta',
+      descricao: 'Os materiais recebem a destinação ambientalmente adequada, promovendo a economia circular.'
+    }
+  ]
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar />
 
-      {/* Cabeçalho */}
-      <section className="bg-green-700 text-white">
-        <div className="max-w-6xl mx-auto px-6 py-16 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Como funciona o E-Ciclo?
-          </h1>
-
-          <p className="text-lg text-green-100 max-w-2xl mx-auto">
-            Veja como é simples contribuir para o descarte correto
-            de equipamentos eletroeletrônicos.
+      <main className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <h1 className="text-3xl font-extrabold text-slate-900">Como funciona o E-Ciclo?</h1>
+          <p className="mt-2 text-slate-600">
+            Aprenda como descartar seus resíduos eletrônicos de maneira simples, rápida e segura.
           </p>
         </div>
-      </section>
 
-      {/* Etapas */}
-      <main className="max-w-6xl mx-auto px-6 py-16">
-        <div className="grid md:grid-cols-3 gap-8">
-          
-          <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-            <div className="w-14 h-14 mx-auto mb-5 bg-green-100 rounded-full flex items-center justify-center text-2xl">
-              1
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
+          {passos.map((passo) => (
+            <div key={passo.numero} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+              <span className="text-3xl font-black text-emerald-600 font-mono">{passo.numero}</span>
+              <h3 className="mt-4 text-lg font-bold text-slate-900">{passo.titulo}</h3>
+              <p className="mt-2 text-sm text-slate-600 leading-relaxed">{passo.descricao}</p>
             </div>
-
-            <h2 className="text-xl font-bold text-gray-800 mb-3">
-              Cadastre seu equipamento
-            </h2>
-
-            <p className="text-gray-600">
-              Informe qual equipamento eletrônico você deseja
-              encaminhar para a coleta.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-            <div className="w-14 h-14 mx-auto mb-5 bg-green-100 rounded-full flex items-center justify-center text-2xl">
-              2
-            </div>
-
-            <h2 className="text-xl font-bold text-gray-800 mb-3">
-              Encontre um ponto de coleta
-            </h2>
-
-            <p className="text-gray-600">
-              Consulte os pontos disponíveis e escolha o local
-              mais adequado para encaminhar seu equipamento.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-            <div className="w-14 h-14 mx-auto mb-5 bg-green-100 rounded-full flex items-center justify-center text-2xl">
-              3
-            </div>
-
-            <h2 className="text-xl font-bold text-gray-800 mb-3">
-              Faça o descarte
-            </h2>
-
-            <p className="text-gray-600">
-              Leve o equipamento até o ponto indicado e contribua
-              para um descarte mais responsável.
-            </p>
-          </div>
-
+          ))}
         </div>
 
-        {/* Tipos de equipamentos */}
-        <section className="mt-16">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-800 mb-3">
-              O que pode ser encaminhado?
-            </h2>
-
-            <p className="text-gray-600">
-              O E-Ciclo é voltado para equipamentos
-              eletroeletrônicos.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl shadow-sm p-5 text-center">
-              <div className="text-3xl mb-3">💻</div>
-              <p className="font-semibold text-gray-700">
-                Computadores
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-5 text-center">
-              <div className="text-3xl mb-3">🖥️</div>
-              <p className="font-semibold text-gray-700">
-                Monitores
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-5 text-center">
-              <div className="text-3xl mb-3">⌨️</div>
-              <p className="font-semibold text-gray-700">
-                Periféricos
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-5 text-center">
-              <div className="text-3xl mb-3">🎮</div>
-              <p className="font-semibold text-gray-700">
-                Videogames
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-5 text-center">
-              <div className="text-3xl mb-3">📺</div>
-              <p className="font-semibold text-gray-700">
-                Televisores
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-5 text-center">
-              <div className="text-3xl mb-3">📱</div>
-              <p className="font-semibold text-gray-700">
-                Celulares
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-5 text-center">
-              <div className="text-3xl mb-3">🖨️</div>
-              <p className="font-semibold text-gray-700">
-                Impressoras
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-5 text-center">
-              <div className="text-3xl mb-3">🔌</div>
-              <p className="font-semibold text-gray-700">
-                Cabos e fontes
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Botão */}
-        <div className="text-center mt-16">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Pronto para contribuir?
-          </h2>
-
+        <div className="bg-emerald-600 text-white rounded-2xl p-8 text-center shadow-md">
+          <h2 className="text-xl font-bold">Pronto para fazer a diferença?</h2>
+          <p className="mt-1 text-emerald-100 text-sm">
+            Doe agora mesmo aquele aparelho parado na sua casa.
+          </p>
           <Link
-            to="/doacao"
-            className="inline-block bg-green-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-800 transition"
+            to="/doar"
+            className="mt-6 inline-block bg-white text-emerald-700 font-bold px-6 py-2.5 rounded-lg text-sm shadow hover:bg-emerald-50 transition"
           >
-            Fazer uma doação
+            Fazer Doação Agora
           </Link>
         </div>
       </main>
     </div>
   )
 }
-
-export default ComoFunciona

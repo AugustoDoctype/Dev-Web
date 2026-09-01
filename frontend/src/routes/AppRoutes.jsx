@@ -8,11 +8,17 @@ import MinhasDoacoes from '../pages/MinhasDoacoes'
 import DetalhesMinhaDoacao from '../pages/DetalhesMinhaDoacao'
 import Confirmacao from '../pages/Confirmacao'
 
-// Páginas Administrativas
+// Páginas de Autenticação
 import LoginAdmin from '../pages/admin/Login'
+import Cadastro from '../pages/cadastro'
+
+// Páginas Administrativas
 import DashboardAdmin from '../pages/admin/Dashboard'
 import DoacoesAdmin from '../pages/admin/Doacoes'
 import DetalhesDoacaoAdmin from '../pages/admin/DetalhesDoacao'
+
+// Componente de Proteção
+import ProtectedRoute from '../components/auth/ProtectedRoute'
 
 export default function AppRoutes() {
   return (
@@ -25,11 +31,36 @@ export default function AppRoutes() {
       <Route path="/minhas-doacoes/:id" element={<DetalhesMinhaDoacao />} />
       <Route path="/confirmacao" element={<Confirmacao />} />
 
-      {/* Rotas Admin */}
+      {/* Autenticação - Rota /login apontando para o Login existente */}
+      <Route path="/login" element={<LoginAdmin />} />
+      <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/admin/login" element={<LoginAdmin />} />
-      <Route path="/admin/dashboard" element={<DashboardAdmin />} />
-      <Route path="/admin/doacoes" element={<DoacoesAdmin />} />
-      <Route path="/admin/doacoes/:id" element={<DetalhesDoacaoAdmin />} />
+
+      {/* Painel Admin Protegido */}
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardAdmin />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/doacoes"
+        element={
+          <ProtectedRoute>
+            <DoacoesAdmin />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/doacoes/:id"
+        element={
+          <ProtectedRoute>
+            <DetalhesDoacaoAdmin />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   )
 }
