@@ -1,238 +1,328 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/public/Navbar'
+import { apiFetch } from '../services/api'
 
-function Doacao() {
+export default function Doacao() {
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
+  const [erro, setErro] = useState('')
 
-  const [formulario, setFormulario] = useState({
-    categoria: '',
+  const [formData, setFormData] = useState({
+    nomeDoador: '',
+    email: '',
+    telefone: '',
+    cpf: '',
     equipamento: '',
-    quantidade: '',
-    observacao: '',
+    categoria: 'Computadores',
+    condicao: 'USADO_BOM',
+    descricao: '',
+    cep: '',
+    logradouro: '',
+    numero: '',
+    bairro: '',
+    cidade: '',
+    estado: ''
   })
 
-  function handleChange(event) {
-    const { id, value } = event.target
-
-    setFormulario({
-      ...formulario,
-      [id]: value,
-    })
+  // Funções de Máscara de Entrada
+  const aplicarMascaraCPF = (valor) => {
+    return valor
+      .replace(/\D/g, '')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+      .slice(0, 14)
   }
 
-  function handleSubmit(event) {
-    event.preventDefault()
+  const aplicarMascaraTelefone = (valor) => {
+    return valor
+      .replace(/\D/g, '')
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .slice(0, 15)
+  }
 
-    const quantidade = Number(formulario.quantidade)
+  const aplicarMascaraCEP = (valor) => {
+    return valor
+      .replace(/\D/g, '')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .slice(0, 9)
+  }
 
-    if (quantidade < 1) {
-      alert('A quantidade deve ser pelo menos 1.')
-      return
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    let valorFormatado = value
+
+    if (name === 'cpf') valorFormatado = aplicarMascaraCPF(value)
+    if (name === 'telefone') valorFormatado = aplicarMascaraTelefone(value)
+    if (name === 'cep') valorFormatado = aplicarMascaraCEP(value)
+
+    setFormData((prev) => ({ ...prev, [name]: valorFormatado }))
+
+    // Busca automática por CEP quando preenchido completamente
+    if (name === 'cep' && value.replace(/\D/g, '').length === 8) {
+      buscarEnderecoPorCEP(value.replace(/\D/g, ''))
     }
+  }
 
-    const doacao = {
-      id: Date.now(),
-      categoria: formulario.categoria,
-      equipamento: formulario.equipamento,
-      quantidade: quantidade,
-      observacao: formulario.observacao,
-      status: 'Pendente',
-      data: new Date().toLocaleDateString('pt-BR'),
+  // Integração com a API do ViaCEP
+  const buscarEnderecoPorCEP = async (cepLimpo) => {
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+      const data = await res.json()
+
+      if (!data.erro) {
+        setFormData((prev) => ({
+          ...prev,
+          logradouro: data.logradouro || '',
+          bairro: data.bairro || '',
+          cidade: data.localidade || '',
+          estado: data.uf || ''
+        }))
+      }
+    } catch (err) {
+      console.error('Erro ao buscar CEP:', err)
     }
+  }
 
-    const doacoesSalvas = JSON.parse(
-      localStorage.getItem('doacoes') || '[]'
-    )
+  // Envio do Formulário para o Backend
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setErro('')
 
-    doacoesSalvas.push(doacao)
+    try {
+      // Envia os dados para a rota POST /doacoes do backend
+      const resposta = await apiFetch('/doacoes', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      })
 
-    localStorage.setItem(
-      'doacoes',
-      JSON.stringify(doacoesSalvas)
-    )
-
-    console.log('Doação salva:', doacao)
-
-    navigate('/confirmacao')
+      // Redireciona para a tela de confirmação enviando o ID e os dados recebidos
+      navigate('/confirmacao', { state: { doacao: resposta } })
+    } catch (err) {
+      setErro(err.message || 'Falha ao cadastrar doação. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
-
-        <div className="bg-white rounded-2xl shadow-md p-8">
-
-          <h1 className="text-3xl font-bold text-green-700 mb-2">
-            Faça sua doação
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="bg-white p-6 sm:p-10 rounded-2xl shadow-sm border border-slate-200">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+            Cadastrar Doação de Eletrônico
           </h1>
-
-          <p className="text-gray-600 mb-8">
-            Doe equipamentos eletroeletrônicos que você não utiliza
-            mais e contribua para o descarte correto.
+          <p className="mt-2 text-slate-600 text-sm">
+            Preencha os campos abaixo com os seus dados e as informações do equipamento a ser doado.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {erro && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+              {erro}
+            </div>
+          )}
 
-            {/* Categoria */}
-            <div>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            {/* Seção: Dados Pessoais */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-slate-800 border-b pb-2">Seus Dados</h2>
 
-              <label
-                htmlFor="categoria"
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
-                Categoria do equipamento
-              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Nome Completo *</label>
+                  <input
+                    type="text"
+                    name="nomeDoador"
+                    required
+                    value={formData.nomeDoador}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                  />
+                </div>
 
-              <select
-                id="categoria"
-                value={formulario.categoria}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-              >
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">E-mail *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                  />
+                </div>
 
-                <option value="">
-                  Selecione uma categoria
-                </option>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Telefone / WhatsApp *</label>
+                  <input
+                    type="text"
+                    name="telefone"
+                    required
+                    placeholder="(00) 00000-0000"
+                    value={formData.telefone}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                  />
+                </div>
 
-                <option value="Computadores e notebooks">
-                  Computadores e notebooks
-                </option>
-
-                <option value="Peças de computador">
-                  Peças de computador
-                </option>
-
-                <option value="Periféricos">
-                  Periféricos
-                </option>
-
-                <option value="Videogames e consoles">
-                  Videogames e consoles
-                </option>
-
-                <option value="TVs e monitores">
-                  TVs e monitores
-                </option>
-
-                <option value="Celulares e tablets">
-                  Celulares e tablets
-                </option>
-
-                <option value="Impressoras">
-                  Impressoras
-                </option>
-
-                <option value="Cabos, fontes e carregadores">
-                  Cabos, fontes e carregadores
-                </option>
-
-                <option value="Outros equipamentos eletrônicos">
-                  Outros equipamentos eletrônicos
-                </option>
-
-              </select>
-
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">CPF *</label>
+                  <input
+                    type="text"
+                    name="cpf"
+                    required
+                    placeholder="000.000.000-00"
+                    value={formData.cpf}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Equipamento */}
-            <div>
+            {/* Seção: Equipamento */}
+            <div className="space-y-4 pt-4">
+              <h2 className="text-lg font-bold text-slate-800 border-b pb-2">Informações do Equipamento</h2>
 
-              <label
-                htmlFor="equipamento"
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
-                Nome do equipamento
-              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700">Nome/Modelo do Aparelho *</label>
+                  <input
+                    type="text"
+                    name="equipamento"
+                    required
+                    placeholder="Ex: Notebook Dell Inspiron i5"
+                    value={formData.equipamento}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                  />
+                </div>
 
-              <input
-                type="text"
-                id="equipamento"
-                value={formulario.equipamento}
-                onChange={handleChange}
-                required
-                placeholder="Ex: Placa de vídeo RTX 4060"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-              />
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Categoria *</label>
+                  <select
+                    name="categoria"
+                    value={formData.categoria}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-white"
+                  >
+                    <option value="Computadores">Computadores / Laptops</option>
+                    <option value="Celulares">Celulares / Tablets</option>
+                    <option value="Perifericos">Periféricos (Teclado, Mouse, etc)</option>
+                    <option value="Eletrodomesticos">Pequenos Eletrodomésticos</option>
+                    <option value="Outros">Outros Eletrônicos</option>
+                  </select>
+                </div>
+              </div>
 
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Condição do Item *</label>
+                <select
+                  name="condicao"
+                  value={formData.condicao}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm bg-white"
+                >
+                  <option value="USADO_BOM">Usado - Funcionando perfeitamente</option>
+                  <option value="USADO_DEFEITO">Usado - Com pequenos defeitos</option>
+                  <option value="SUCATA">Sucata / Para reciclagem de peças</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Descrição Detalhada</label>
+                <textarea
+                  name="descricao"
+                  rows={3}
+                  placeholder="Informe detalhes como tempo de uso, acessórios inclusos ou defeitos existentes..."
+                  value={formData.descricao}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                />
+              </div>
             </div>
 
-            {/* Quantidade */}
-            <div>
+            {/* Seção: Endereço para Coleta */}
+            <div className="space-y-4 pt-4">
+              <h2 className="text-lg font-bold text-slate-800 border-b pb-2">Endereço de Coleta</h2>
 
-              <label
-                htmlFor="quantidade"
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
-                Quantidade
-              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">CEP *</label>
+                  <input
+                    type="text"
+                    name="cep"
+                    required
+                    placeholder="00000-000"
+                    value={formData.cep}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                  />
+                </div>
 
-              <input
-                type="number"
-                id="quantidade"
-                value={formulario.quantidade}
-                onChange={handleChange}
-                min="1"
-                step="1"
-                required
-                placeholder="Digite a quantidade"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-              />
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700">Rua / Logradouro *</label>
+                  <input
+                    type="text"
+                    name="logradouro"
+                    required
+                    value={formData.logradouro}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                  />
+                </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Número *</label>
+                  <input
+                    type="text"
+                    name="numero"
+                    required
+                    value={formData.numero}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Bairro *</label>
+                  <input
+                    type="text"
+                    name="bairro"
+                    required
+                    value={formData.bairro}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Cidade/UF *</label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.cidade ? `${formData.cidade} / ${formData.estado}` : ''}
+                    className="mt-1 block w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-600 cursor-not-allowed"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Observação */}
-            <div>
-
-              <label
-                htmlFor="observacao"
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
-                Estado ou observação
-              </label>
-
-              <textarea
-                id="observacao"
-                value={formulario.observacao}
-                onChange={handleChange}
-                rows="4"
-                placeholder="Ex: Equipamento usado, mas funcionando normalmente."
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-              />
-
-            </div>
-
-            {/* Botões */}
-            <div className="flex gap-4">
-
-              <Link
-                to="/"
-                className="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-100 transition"
-              >
-                Voltar
-              </Link>
-
-              <button
-                type="submit"
-                className="px-6 py-3 bg-green-700 text-white rounded-lg font-semibold hover:bg-green-800 transition"
-              >
-                Confirmar doação
-              </button>
-
-            </div>
-
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow transition disabled:opacity-50 text-center"
+            >
+              {loading ? 'Enviando Cadastro...' : 'Concluir Doação'}
+            </button>
           </form>
-
         </div>
-
       </main>
-
     </div>
   )
 }
-
-export default Doacao

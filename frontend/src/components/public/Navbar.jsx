@@ -1,54 +1,43 @@
 import { Link } from 'react-router-dom'
 
-function Navbar() {
+export default function Navbar() {
   return (
-    <nav className="bg-green-700 text-white px-6 py-4">
-
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
-
-        <Link
-          to="/"
-          className="text-2xl font-bold"
-        >
+    <nav className="bg-white shadow-sm border-b border-gray-100 font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        {/* Logo / Nome do Projeto */}
+        <Link to="/" className="text-xl font-bold text-emerald-600 tracking-tight">
           E-Ciclo
         </Link>
 
-        <div className="flex gap-6">
-
-          <Link
-            to="/"
-            className="hover:text-green-200 transition"
-          >
+        {/* Links Principais de Navegação */}
+        <div className="flex items-center gap-6 text-sm font-medium text-gray-600">
+          <Link to="/" className="hover:text-emerald-600 transition">
             Início
           </Link>
-
-          <Link
-            to="/como-funciona"
-            className="hover:text-green-200 transition"
-          >
+          <Link to="/como-funciona" className="hover:text-emerald-600 transition">
             Como Funciona
           </Link>
-
-          <Link
-            to="/doacao"
-            className="hover:text-green-200 transition"
-          >
-            Doar
-          </Link>
-
-          <Link
-            to="/minhas-doacoes"
-            className="hover:text-green-200 transition"
-          >
+          <Link to="/minhas-doacoes" className="hover:text-emerald-600 transition">
             Minhas Doações
           </Link>
 
+          {/* Divisória e Acesso do Usuário */}
+          <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
+            <Link
+              to="/login"
+              className="text-gray-700 hover:text-emerald-600 font-semibold text-xs transition"
+            >
+              Entrar
+            </Link>
+            <Link
+              to="/cadastro"
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-sm transition text-xs"
+            >
+              Cadastrar
+            </Link>
+          </div>
         </div>
-
       </div>
-
     </nav>
   )
 }
-
-export default Navbar
