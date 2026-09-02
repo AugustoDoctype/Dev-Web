@@ -53,11 +53,31 @@ router.post('/', async (req, res) => {
 });
 
 // ==========================================
-// ROTA PROTEGIDA: LISTAR EQUIPAMENTOS
+// ROTA PROTEGIDA: LISTAR EQUIPAMENTOS (COM FILTRO)
 // ==========================================
 router.get('/', verificarToken, async (req, res) => {
   try {
-    const equipamentos = await prisma.equipamento.findMany();
+    // 1. Captura os filtros que vieram na URL (req.query em vez de req.body)
+    const { status, categoria } = req.query;
+
+    // 2. Monta um objeto de busca dinâmico
+    const filtro = {};
+    
+    // Se o front-end enviou um status, adiciona ao filtro
+    if (status) {
+      filtro.status = status;
+    }
+    
+    // Se enviou uma categoria, adiciona ao filtro
+    if (categoria) {
+      filtro.categoria = categoria;
+    }
+
+    // 3. Pede ao Prisma para buscar usando o filtro
+    // (Se o objeto filtro estiver vazio, o Prisma traz tudo)
+    const equipamentos = await prisma.equipamento.findMany({
+      where: filtro
+    });
     
     return res.status(200).json({
       sucesso: true,
@@ -66,7 +86,7 @@ router.get('/', verificarToken, async (req, res) => {
       dados: equipamentos
     });
   } catch (erro) {
-    return res.status(500).json({ erro: "Erro ao buscar equipamentos." });
+    return res.status(500).json({ erro: "Erro ao buscar equipamentos.", detalhes: erro.message });
   }
 });
 
