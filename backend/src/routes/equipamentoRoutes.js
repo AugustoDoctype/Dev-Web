@@ -1,43 +1,39 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { verificarToken } from '../middlewares/auth.js';
+import { upload } from '../middlewares/upload.js'
 
 const router = Router();
 
 // ==========================================
-// ROTA PARA CADASTRAR EQUIPAMENTO
+// ROTA PARA CADASTRAR EQUIPAMENTO (COM FOTO)
 // ==========================================
-router.post('/', async (req, res) => {
+// Adicionamos o upload.single('foto') como interceptador
+router.post('/', upload.single('foto'), async (req, res) => {
   try {
-    const { doadorId, categoria, descricao, fotoUrl, status } = req.body;
+    const { doadorId, categoria, descricao, status } = req.body;
 
     if (!doadorId) {
-      return res.status(400).json({ erro: "O ID do doador é obrigatório para registrar o equipamento." });
+      return res.status(400).json({ erro: "O ID do doador é obrigatório." });
     }
 
-    // 1. Trava anti-duplicidade: Busca se já existe um item idêntico deste doador
+    // Se o arquivo veio na requisição, montamos o caminho dele. Se não, fica null.
+    const fotoUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
     const equipamentoDuplicado = await prisma.equipamento.findFirst({
-      where: {
-        doadorId,
-        categoria,
-        descricao
-      }
+      where: { doadorId, categoria, descricao }
     });
 
-    // 2. Se achar, barra o cadastro e avisa o front-end
     if (equipamentoDuplicado) {
-      return res.status(400).json({ 
-        erro: "Um equipamento com essa mesma categoria e descrição já foi cadastrado para este doador." 
-      });
+      return res.status(400).json({ erro: "Equipamento já cadastrado." });
     }
 
-    // 3. Se passou pela trava, salva normalmente
     const novoEquipamento = await prisma.equipamento.create({
       data: {
         doadorId,
         categoria,
         descricao,
-        fotoUrl,
+        fotoUrl, // Agora salva o caminho real da imagem!
         status: status || "PENDENTE"
       }
     });

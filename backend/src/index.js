@@ -10,6 +10,8 @@ import authRoutes from './routes/authRoutes.js';
 const app = express();
 
 app.use(express.json());
+// Libera a pasta 'uploads' para ser acessada publicamente pelo navegador
+app.use('/uploads', express.static('uploads'));
 
 // ==========================================
 // ROTA DE TESTE (Consulta Inicial)
