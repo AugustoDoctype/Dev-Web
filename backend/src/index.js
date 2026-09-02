@@ -1,5 +1,6 @@
 import express from 'express';
 import prisma from './lib/prisma.js'; 
+import dashboardRoutes from './routes/dashboardRoutes.js';
 
 // Importação das rotas modularizadas
 import doadorRoutes from './routes/doadorRoutes.js';
@@ -42,6 +43,9 @@ app.use('/doadores', doadorRoutes);
 
 // Tudo que começar com /equipamentos vai para equipamentoRoutes
 app.use('/equipamentos', equipamentoRoutes); 
+
+// Tudo que começar com /dashboard vai para dashboardRoutes
+app.use('/dashboard', dashboardRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
