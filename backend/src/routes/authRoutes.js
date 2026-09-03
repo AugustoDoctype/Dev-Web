@@ -1,3 +1,5 @@
+import { z } from 'zod';
+import { adminCadastroSchema, adminLoginSchema } from '../schemas/adminSchema.js';
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
@@ -34,7 +36,8 @@ const router = Router();
 // ==========================================
 router.post('/admins', async (req, res) => {
   try {
-    const { nome, email, senha } = req.body;
+    const dadosValidados = adminCadastroSchema.parse(req.body);
+    const { nome, email, senha } = dadosValidados;
 
     if (!nome || !email || !senha) {
       return res.status(400).json({ erro: "Nome, email e senha são obrigatórios." });
@@ -57,7 +60,19 @@ router.post('/admins', async (req, res) => {
       dados: { id: novoAdmin.id, nome: novoAdmin.nome, email: novoAdmin.email } 
     });
   } catch (erro) {
-    return res.status(500).json({ erro: "Erro ao cadastrar administrador.", detalhes: erro.message });
+    // 1. Intercepta os erros de validação do Zod na rota de CADASTRO
+    if (erro.name === 'ZodError') {
+      return res.status(400).json({ 
+        erro: "Dados de entrada inválidos.", 
+        detalhes: erro.issues.map(issue => `${issue.path[0]}: ${issue.message}`)
+      });
+    }
+
+    // 2. Outros erros
+    return res.status(500).json({ 
+      erro: "Erro ao cadastrar administrador.", 
+      detalhes: erro.message 
+    });
   }
 });
 /**
@@ -88,7 +103,8 @@ router.post('/admins', async (req, res) => {
 // ==========================================
 router.post('/login', async (req, res) => {
   try {
-    const { email, senha } = req.body;
+    const dadosValidados = adminLoginSchema.parse(req.body);
+    const { email, senha } = dadosValidados;
 
     const admin = await prisma.admin.findUnique({ where: { email } });
     
@@ -114,7 +130,19 @@ router.post('/login', async (req, res) => {
       token: token
     });
   } catch (erro) {
-    return res.status(500).json({ erro: "Erro ao fazer login.", detalhes: erro.message });
+    // 1. Intercepta os erros de validação do Zod na rota de CADASTRO
+    if (erro.name === 'ZodError') {
+      return res.status(400).json({ 
+        erro: "Dados de entrada inválidos.", 
+        detalhes: erro.issues.map(issue => `${issue.path[0]}: ${issue.message}`)
+      });
+    }
+
+    // 2. Outros erros
+    return res.status(500).json({ 
+      erro: "Erro ao cadastrar administrador.", 
+      detalhes: erro.message 
+    });
   }
 });
 

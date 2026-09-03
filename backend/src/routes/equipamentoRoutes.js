@@ -1,3 +1,5 @@
+import { z } from 'zod';
+import { criarEquipamentoSchema } from '../schemas/equipamentoSchema.js';
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { verificarToken } from '../middlewares/auth.js';
@@ -40,20 +42,17 @@ const router = Router();
 // Adicionamos o upload.single('foto') como interceptador
 router.post('/', upload.single('foto'), async (req, res) => {
   try {
-    const { doadorId, categoria, descricao, status } = req.body;
+    // 1. O Zod analisa o req.body. Se estiver errado, ele "quebra" o código aqui e pula direto pro catch
+    const dadosValidados = criarEquipamentoSchema.parse(req.body);
 
-    if (!doadorId) {
-      // Se barrar aqui, apaga a foto do HD
-      if (req.file) fs.unlinkSync(req.file.path); 
-      return res.status(400).json({ erro: "O ID do doador é obrigatório." });
-    }
+    // 2. Extraím os dados já validados de forma segura
+    const { doadorId, categoria, descricao, status } = dadosValidados;
 
     const equipamentoDuplicado = await prisma.equipamento.findFirst({
       where: { doadorId, categoria, descricao }
     });
 
     if (equipamentoDuplicado) {
-      // A MÁGICA AQUI: Se a trava anti-duplicidade ativar, deletamos a foto órfã!
       if (req.file) fs.unlinkSync(req.file.path);
       return res.status(400).json({ erro: "Um equipamento com essa mesma categoria e descrição já foi cadastrado para este doador." });
     }
@@ -75,10 +74,20 @@ router.post('/', upload.single('foto'), async (req, res) => {
       mensagem: "Equipamento cadastrado com sucesso!",
       dados: novoEquipamento
     });
+
   } catch (erro) {
-    // Se der qualquer erro no servidor (ex: banco fora do ar), apaga a foto também
+    // Se der erro, apaga a foto órfã que o multer salvou
     if (req.file) fs.unlinkSync(req.file.path); 
-    return res.status(500).json({ erro: "Erro ao cadastrar equipamento.", detalhes: erro.message });
+
+    // 3. A MÁGICA DO ZOD: Intercepta o erro específico de validação
+    if (erro instanceof z.ZodError) {
+      return res.status(400).json({ 
+        erro: "Dados de entrada inválidos.", 
+        detalhes: erro.issues.map(issue => `${issue.path[0]}: ${issue.message}`)
+      });
+    }
+
+    return res.status(500).json({ erro: "Erro interno no servidor.", detalhes: erro.message });
   }
 });
 /**
