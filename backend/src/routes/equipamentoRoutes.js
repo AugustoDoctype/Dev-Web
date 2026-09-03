@@ -4,7 +4,36 @@ import { verificarToken } from '../middlewares/auth.js';
 import { upload } from '../middlewares/upload.js';
 import fs from 'fs';
 const router = Router();
-
+/**
+ * @swagger
+ * /equipamentos:
+ *   post:
+ *     summary: Cadastra um novo equipamento com foto
+ *     tags: [Equipamentos]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               doadorId:
+ *                 type: string
+ *                 description: ID do doador no banco de dados
+ *               categoria:
+ *                 type: string
+ *               descricao:
+ *                 type: string
+ *               foto:
+ *                 type: string
+ *                 format: binary
+ *                 description: Imagem do equipamento (JPG/PNG)
+ *     responses:
+ *       201:
+ *         description: Equipamento cadastrado com sucesso.
+ *       400:
+ *         description: Dados inválidos ou equipamento duplicado.
+ */
 // ==========================================
 // ROTA PARA CADASTRAR EQUIPAMENTO (COM FOTO)
 // ==========================================
@@ -52,7 +81,22 @@ router.post('/', upload.single('foto'), async (req, res) => {
     return res.status(500).json({ erro: "Erro ao cadastrar equipamento.", detalhes: erro.message });
   }
 });
-
+/**
+ * @swagger
+ * /equipamentos:
+ *   get:
+ *     summary: Lista todos os equipamentos
+ *     tags: [Equipamentos]
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filtra os equipamentos pelo status (ex PENDENTE, CONSERTADO)
+ *     responses:
+ *       200:
+ *         description: Lista de equipamentos retornada com sucesso.
+ */
 // ==========================================
 // ROTA PROTEGIDA: LISTAR EQUIPAMENTOS (COM FILTRO)
 // ==========================================
@@ -90,7 +134,39 @@ router.get('/', verificarToken, async (req, res) => {
     return res.status(500).json({ erro: "Erro ao buscar equipamentos.", detalhes: erro.message });
   }
 });
-
+/**
+ * @swagger
+ * /equipamentos/{id}:
+ *   put:
+ *     summary: Atualiza o status de um equipamento na bancada
+ *     tags: [Equipamentos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do equipamento
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 example: CONSERTADO
+ *     responses:
+ *       200:
+ *         description: Status do equipamento atualizado com sucesso.
+ *       401:
+ *         description: Token ausente ou inválido.
+ *       404:
+ *         description: Equipamento não encontrado.
+ */
 // ==========================================
 // ROTA PROTEGIDA: ATUALIZAR EQUIPAMENTO
 // ==========================================
@@ -113,7 +189,29 @@ router.put('/:id', verificarToken, async (req, res) => {
     return res.status(500).json({ erro: "Erro ao atualizar equipamento.", detalhes: erro.message });
   }
 });
-
+/**
+ * @swagger
+ * /equipamentos/{id}:
+ *   delete:
+ *     summary: Remove um equipamento do sistema
+ *     tags: [Equipamentos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do equipamento
+ *     responses:
+ *       200:
+ *         description: Equipamento removido com sucesso.
+ *       401:
+ *         description: Token ausente ou inválido.
+ *       404:
+ *         description: Equipamento não encontrado.
+ */
 // ==========================================
 // ROTA PROTEGIDA: DELETAR EQUIPAMENTO
 // ==========================================

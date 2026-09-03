@@ -4,7 +4,31 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const router = Router();
-
+/**
+ * @swagger
+ * /admins:
+ *   post:
+ *     summary: Cadastra um novo administrador
+ *     tags: [Administradores]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               senha:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Administrador criado com sucesso.
+ *       400:
+ *         description: Email já cadastrado ou dados inválidos.
+ */
 // ==========================================
 // ROTA PARA CADASTRAR UM ADMINISTRADOR
 // ==========================================
@@ -36,7 +60,29 @@ router.post('/admins', async (req, res) => {
     return res.status(500).json({ erro: "Erro ao cadastrar administrador.", detalhes: erro.message });
   }
 });
-
+/**
+ * @swagger
+ * /admins/login:
+ *   post:
+ *     summary: Autentica o administrador e gera o token de acesso
+ *     tags: [Administradores]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               senha:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login bem-sucedido. Retorna o token JWT.
+ *       401:
+ *         description: Credenciais inválidas.
+ */
 // ==========================================
 // ROTA DE LOGIN (AUTENTICAÇÃO)
 // ==========================================

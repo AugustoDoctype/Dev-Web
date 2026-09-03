@@ -3,7 +3,20 @@ import prisma from '../lib/prisma.js';
 import { verificarToken } from '../middlewares/auth.js';
 
 const router = Router();
-
+/**
+ * @swagger
+ * /dashboard:
+ *   get:
+ *     summary: Retorna a contagem total de doadores e equipamentos
+ *     tags: [Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Estatísticas carregadas com sucesso.
+ *       401:
+ *         description: Token ausente ou inválido.
+ */
 // ==========================================
 // ROTA PROTEGIDA: RESUMO DO DASHBOARD
 // ==========================================
