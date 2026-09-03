@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { verificarToken } from '../middlewares/auth.js';
-import { upload } from '../middlewares/upload.js'
-
+import { upload } from '../middlewares/upload.js';
+import fs from 'fs';
 const router = Router();
 
 // ==========================================
@@ -14,26 +14,29 @@ router.post('/', upload.single('foto'), async (req, res) => {
     const { doadorId, categoria, descricao, status } = req.body;
 
     if (!doadorId) {
+      // Se barrar aqui, apaga a foto do HD
+      if (req.file) fs.unlinkSync(req.file.path); 
       return res.status(400).json({ erro: "O ID do doador é obrigatório." });
     }
-
-    // Se o arquivo veio na requisição, montamos o caminho dele. Se não, fica null.
-    const fotoUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     const equipamentoDuplicado = await prisma.equipamento.findFirst({
       where: { doadorId, categoria, descricao }
     });
 
     if (equipamentoDuplicado) {
-      return res.status(400).json({ erro: "Equipamento já cadastrado." });
+      // A MÁGICA AQUI: Se a trava anti-duplicidade ativar, deletamos a foto órfã!
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ erro: "Um equipamento com essa mesma categoria e descrição já foi cadastrado para este doador." });
     }
+
+    const fotoUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     const novoEquipamento = await prisma.equipamento.create({
       data: {
         doadorId,
         categoria,
         descricao,
-        fotoUrl, // Agora salva o caminho real da imagem!
+        fotoUrl,
         status: status || "PENDENTE"
       }
     });
@@ -44,6 +47,8 @@ router.post('/', upload.single('foto'), async (req, res) => {
       dados: novoEquipamento
     });
   } catch (erro) {
+    // Se der qualquer erro no servidor (ex: banco fora do ar), apaga a foto também
+    if (req.file) fs.unlinkSync(req.file.path); 
     return res.status(500).json({ erro: "Erro ao cadastrar equipamento.", detalhes: erro.message });
   }
 });
