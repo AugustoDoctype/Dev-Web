@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import prisma from './lib/prisma.js'; 
 import dashboardRoutes from './routes/dashboardRoutes.js';
 
@@ -8,6 +9,8 @@ import equipamentoRoutes from './routes/equipamentoRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 
 const app = express();
+
+app.use(cors());
 
 app.use(express.json());
 // Libera a pasta 'uploads' para ser acessada publicamente pelo navegador
