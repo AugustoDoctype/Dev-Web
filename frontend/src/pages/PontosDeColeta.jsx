@@ -12,6 +12,7 @@ import Navbar from '../components/public/Navbar'
 import 'leaflet/dist/leaflet.css'
 
 const STORAGE_KEY = 'mock_pontos_coleta'
+const THEME_KEY = 'eciclo-tema'
 
 const pontosDemonstracao = [
   {
@@ -52,6 +53,12 @@ const CATEGORIAS = [
   'Eletrônicos em geral',
   'Outros',
 ]
+
+function lerTema() {
+  return localStorage.getItem(THEME_KEY) === 'claro'
+    ? 'claro'
+    : 'escuro'
+}
 
 function normalizarPonto(ponto) {
   const latitude = Number(ponto.latitude)
@@ -109,7 +116,7 @@ function Icone({ children, className = '' }) {
 function CartaoInformativo({ ponto, selecionado, aoSelecionar }) {
   return (
     <article
-      className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 ${
+      className={`pc-card group relative overflow-hidden rounded-2xl border transition-all duration-300 ${
         selecionado
           ? 'border-emerald-400/50 bg-emerald-400/[0.07] shadow-lg shadow-emerald-950/20'
           : 'border-white/[0.08] bg-[#101a19] hover:-translate-y-0.5 hover:border-emerald-400/30 hover:bg-[#14201e]'
@@ -152,7 +159,7 @@ function CartaoInformativo({ ponto, selecionado, aoSelecionar }) {
 
         <div className="mt-5 space-y-3">
           <div className="flex items-start gap-3">
-            <Icone className="mt-0.5 h-8 w-8 rounded-lg bg-white/[0.04] text-sm">
+            <Icone className="pc-icon mt-0.5 h-8 w-8 rounded-lg bg-white/[0.04] text-sm">
               📍
             </Icone>
             <div className="min-w-0 flex-1">
@@ -166,7 +173,7 @@ function CartaoInformativo({ ponto, selecionado, aoSelecionar }) {
           </div>
 
           <div className="flex items-start gap-3">
-            <Icone className="mt-0.5 h-8 w-8 rounded-lg bg-white/[0.04] text-sm">
+            <Icone className="pc-icon mt-0.5 h-8 w-8 rounded-lg bg-white/[0.04] text-sm">
               ♻️
             </Icone>
             <div className="min-w-0 flex-1">
@@ -180,7 +187,7 @@ function CartaoInformativo({ ponto, selecionado, aoSelecionar }) {
           </div>
 
           <div className="flex items-start gap-3">
-            <Icone className="mt-0.5 h-8 w-8 rounded-lg bg-white/[0.04] text-sm">
+            <Icone className="pc-icon mt-0.5 h-8 w-8 rounded-lg bg-white/[0.04] text-sm">
               🕒
             </Icone>
             <div className="min-w-0 flex-1">
@@ -195,7 +202,7 @@ function CartaoInformativo({ ponto, selecionado, aoSelecionar }) {
         </div>
       </button>
 
-      <div className="flex items-center justify-between gap-3 border-t border-white/[0.07] px-5 py-4 sm:px-6">
+      <div className="pc-card-footer flex items-center justify-between gap-3 border-t border-white/[0.07] px-5 py-4 sm:px-6">
         <button
           type="button"
           onClick={() => aoSelecionar(ponto)}
@@ -230,7 +237,46 @@ export default function PontosDeColeta() {
   )
   const [busca, setBusca] = useState('')
   const [pontoSelecionado, setPontoSelecionado] = useState(null)
+  const [tema, setTema] = useState(lerTema)
 
+  const modoClaro = tema === 'claro'
+
+  // Sincroniza a página com o botão de tema da Navbar.
+  useEffect(() => {
+    function atualizarTema(evento) {
+      const novoTema =
+        evento.detail === 'claro' ? 'claro' : 'escuro'
+
+      setTema(novoTema)
+    }
+
+    // Confere novamente a preferência ao montar a página.
+    setTema(lerTema())
+
+    window.addEventListener(
+      'eciclo-tema-alterado',
+      atualizarTema
+    )
+
+    // Também acompanha alterações feitas em outra aba.
+    function atualizarStorage(evento) {
+      if (evento.key === THEME_KEY) {
+        setTema(evento.newValue === 'claro' ? 'claro' : 'escuro')
+      }
+    }
+
+    window.addEventListener('storage', atualizarStorage)
+
+    return () => {
+      window.removeEventListener(
+        'eciclo-tema-alterado',
+        atualizarTema
+      )
+      window.removeEventListener('storage', atualizarStorage)
+    }
+  }, [])
+
+  // Carrega os pontos cadastrados na área administrativa.
   useEffect(() => {
     function carregarPontos() {
       try {
@@ -263,8 +309,16 @@ export default function PontosDeColeta() {
     carregarPontos()
     window.addEventListener('storage', carregarPontos)
 
+    // Permite atualizar a lista quando a área administrativa
+    // emitir este evento após salvar alterações.
+    window.addEventListener('pontos-coleta-atualizados', carregarPontos)
+
     return () => {
       window.removeEventListener('storage', carregarPontos)
+      window.removeEventListener(
+        'pontos-coleta-atualizados',
+        carregarPontos
+      )
     }
   }, [])
 
@@ -291,7 +345,9 @@ export default function PontosDeColeta() {
   useEffect(() => {
     if (
       pontoSelecionado &&
-      !pontosFiltrados.some((ponto) => ponto.id === pontoSelecionado.id)
+      !pontosFiltrados.some(
+        (ponto) => ponto.id === pontoSelecionado.id
+      )
     ) {
       setPontoSelecionado(null)
     }
@@ -310,11 +366,137 @@ export default function PontosDeColeta() {
     : [-3.119, -60.0217]
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#080e0d] text-white">
+    <div
+      className={`pontos-page min-h-screen overflow-x-hidden transition-colors duration-300 ${
+        modoClaro ? 'tema-claro' : 'tema-escuro'
+      }`}
+    >
+      <style>{`
+        .pontos-page {
+          background-color: #080e0d;
+          color: #f8fafc;
+          transition: background-color 250ms ease, color 250ms ease;
+        }
+
+        .pontos-page.tema-claro {
+          background-color: #f8fafc;
+          color: #0f172a;
+        }
+
+        .pontos-page.tema-claro section.bg-\\\\[\\\\#0b1311\\\\],
+        .pontos-page.tema-claro [class~="bg-[#0b1311]"],
+        .pontos-page.tema-claro [class~="bg-[#0d1514]"],
+        .pontos-page.tema-claro [class~="bg-[#0e1915]"],
+        .pontos-page.tema-claro [class~="bg-[#101a19]"],
+        .pontos-page.tema-claro [class~="bg-[#080e0d]"] {
+          background-color: #ffffff !important;
+        }
+
+        .pontos-page.tema-claro [class~="hover:bg-[#14201e]"]:hover {
+          background-color: #f0fdf4 !important;
+        }
+
+        .pontos-page.tema-claro [class~="text-white"],
+        .pontos-page.tema-claro [class~="text-slate-200"] {
+          color: #0f172a !important;
+        }
+
+        .pontos-page.tema-claro [class~="text-slate-300"] {
+          color: #334155 !important;
+        }
+
+        .pontos-page.tema-claro [class~="text-slate-400"] {
+          color: #475569 !important;
+        }
+
+        .pontos-page.tema-claro [class~="text-slate-500"],
+        .pontos-page.tema-claro [class~="text-slate-600"] {
+          color: #64748b !important;
+        }
+
+        .pontos-page.tema-claro [class~="border-white/10"],
+        .pontos-page.tema-claro [class~="border-white/[0.06]"],
+        .pontos-page.tema-claro [class~="border-white/[0.07]"],
+        .pontos-page.tema-claro [class~="border-white/[0.08]"],
+        .pontos-page.tema-claro [class~="border-white/[0.09]"],
+        .pontos-page.tema-claro [class~="border-white/[0.12]"] {
+          border-color: #e2e8f0 !important;
+        }
+
+        .pontos-page.tema-claro [class~="bg-white/[0.04]"],
+        .pontos-page.tema-claro [class~="bg-white/[0.03]"],
+        .pontos-page.tema-claro [class~="bg-white/[0.025]"],
+        .pontos-page.tema-claro [class~="bg-white/[0.035]"],
+        .pontos-page.tema-claro [class~="bg-white/[0.015]"] {
+          background-color: #f1f5f9 !important;
+        }
+
+        .pontos-page.tema-claro [class~="bg-black/10"] {
+          background-color: #f8fafc !important;
+        }
+
+        .pontos-page.tema-claro input,
+        .pontos-page.tema-claro select {
+          color: #0f172a;
+          background-color: #ffffff;
+          border-color: #cbd5e1;
+        }
+
+        .pontos-page.tema-claro input::placeholder {
+          color: #64748b;
+        }
+
+        .pontos-page.tema-claro [class~="text-[#07110d]"] {
+          color: #07110d !important;
+        }
+
+        .pontos-page.tema-claro .pc-card-footer {
+          border-color: #e2e8f0;
+        }
+
+        .pontos-page.tema-claro .pc-icon {
+          background-color: #f1f5f9;
+        }
+
+        .pontos-page.tema-claro .pc-card {
+          box-shadow: 0 4px 18px rgb(15 23 42 / 4%);
+        }
+
+        .pontos-page.tema-claro [class~="bg-[#080e0d]/70"] {
+          background-color: rgb(248 250 252 / 90%) !important;
+        }
+
+        .pontos-page :is(button, a, input, select):focus-visible {
+          outline: 2px solid #10b981;
+          outline-offset: 3px;
+        }
+
+        .pontos-page.tema-claro .leaflet-popup-content-wrapper,
+        .pontos-page.tema-claro .leaflet-popup-tip {
+          background: #ffffff;
+          color: #0f172a;
+        }
+
+        .pontos-page.tema-claro .leaflet-control-zoom a {
+          background: #ffffff;
+          color: #0f172a;
+          border-color: #e2e8f0;
+        }
+
+        .pontos-page.tema-claro .leaflet-control-attribution {
+          background: rgb(255 255 255 / 85%);
+          color: #475569;
+        }
+
+        .pontos-page.tema-claro .leaflet-control-attribution a {
+          color: #047857;
+        }
+      `}</style>
+
       <Navbar />
 
       <main>
-        {/* Hero - apresentação renovada */}
+        {/* Hero */}
         <section className="relative isolate overflow-hidden border-b border-white/[0.07] bg-[#0b1311]">
           <div
             aria-hidden="true"

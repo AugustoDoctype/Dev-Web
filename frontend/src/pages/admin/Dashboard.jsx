@@ -58,6 +58,7 @@ function CardIndicador({
 
       <div className="mt-4 flex items-center justify-between gap-2">
         <p className="text-xs text-slate-500">{descricao}</p>
+
         {percentual !== undefined && (
           <span className="text-xs font-bold text-slate-300">
             {percentual}%
@@ -79,13 +80,73 @@ function CardIndicador({
 
 export default function DashboardAdmin() {
   const navigate = useNavigate()
+
   const [doacoes, setDoacoes] = useState([])
   const [busca, setBusca] = useState('')
   const [filtroStatus, setFiltroStatus] = useState('TODOS')
 
+  const [tema, setTema] = useState(() =>
+    localStorage.getItem('eciclo-tema') === 'claro'
+      ? 'claro'
+      : 'escuro'
+  )
+
+  const modoClaro = tema === 'claro'
+
   useEffect(() => {
     carregarDoacoes()
   }, [])
+
+  useEffect(() => {
+    const atualizarTema = (evento) => {
+      const novoTema =
+        evento.detail ||
+        (localStorage.getItem('eciclo-tema') === 'claro'
+          ? 'claro'
+          : 'escuro')
+
+      setTema(novoTema)
+    }
+
+    setTema(
+      localStorage.getItem('eciclo-tema') === 'claro'
+        ? 'claro'
+        : 'escuro'
+    )
+
+    window.addEventListener(
+      'eciclo-tema-alterado',
+      atualizarTema
+    )
+
+    return () => {
+      window.removeEventListener(
+        'eciclo-tema-alterado',
+        atualizarTema
+      )
+    }
+  }, [])
+
+  function alternarTema() {
+    const novoTema = modoClaro ? 'escuro' : 'claro'
+
+    localStorage.setItem('eciclo-tema', novoTema)
+
+    document.documentElement.classList.toggle(
+      'dark',
+      novoTema === 'escuro'
+    )
+
+    document.documentElement.style.colorScheme = novoTema
+
+    setTema(novoTema)
+
+    window.dispatchEvent(
+      new CustomEvent('eciclo-tema-alterado', {
+        detail: novoTema,
+      })
+    )
+  }
 
   function carregarDoacoes() {
     try {
@@ -112,14 +173,20 @@ export default function DashboardAdmin() {
     )
 
     setDoacoes(atualizadas)
-    localStorage.setItem('mock_doacoes', JSON.stringify(atualizadas))
+
+    localStorage.setItem(
+      'mock_doacoes',
+      JSON.stringify(atualizadas)
+    )
   }
 
   const estatisticas = useMemo(() => {
     const total = doacoes.length
+
     const contar = (status) =>
-      doacoes.filter((item) => (item.status || STATUS_INICIAL) === status)
-        .length
+      doacoes.filter(
+        (item) => (item.status || STATUS_INICIAL) === status
+      ).length
 
     return {
       total,
@@ -132,7 +199,15 @@ export default function DashboardAdmin() {
   }, [doacoes])
 
   const percentualConcluido = estatisticas.total
-    ? Math.round((estatisticas.concluidas / estatisticas.total) * 100)
+    ? Math.round(
+        (estatisticas.concluidas / estatisticas.total) * 100
+      )
+    : 0
+
+  const percentualPendente = estatisticas.total
+    ? Math.round(
+        (estatisticas.pendentes / estatisticas.total) * 100
+      )
     : 0
 
   const doacoesFiltradas = useMemo(() => {
@@ -159,13 +234,17 @@ export default function DashboardAdmin() {
     })
   }, [doacoes, busca, filtroStatus])
 
-  const percentualPendente = estatisticas.total
-    ? Math.round((estatisticas.pendentes / estatisticas.total) * 100)
-    : 0
-
   const navegacao = [
-    { label: 'Visão geral', simbolo: '▦', rota: '/admin/dashboard' },
-    { label: 'Doações', simbolo: '♧', rota: '/admin/doacoes' },
+    {
+      label: 'Visão geral',
+      simbolo: '▦',
+      rota: '/admin/dashboard',
+    },
+    {
+      label: 'Doações',
+      simbolo: '♧',
+      rota: '/admin/doacoes',
+    },
     {
       label: 'Pontos de coleta',
       simbolo: '⌖',
@@ -174,17 +253,26 @@ export default function DashboardAdmin() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#0b110e] font-sans text-slate-100">
+    <div
+      className={`dashboard-admin min-h-screen font-sans transition-colors duration-300 ${
+        modoClaro
+          ? 'tema-claro bg-slate-50 text-slate-800'
+          : 'tema-escuro bg-[#0b110e] text-slate-100'
+      }`}
+    >
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.08] bg-[#0e1712] lg:flex">
         <div className="flex h-20 items-center gap-3 border-b border-white/[0.08] px-6">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-400/10 text-2xl text-emerald-400">
             ♻
           </div>
+
           <div>
             <h1 className="text-lg font-extrabold tracking-tight text-white">
               E-Ciclo
             </h1>
-            <p className="text-xs text-slate-500">Painel administrativo</p>
+            <p className="text-xs text-slate-500">
+              Painel administrativo
+            </p>
           </div>
         </div>
 
@@ -209,7 +297,9 @@ export default function DashboardAdmin() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.04] text-lg">
                   {item.simbolo}
                 </span>
+
                 {item.label}
+
                 {ativo && (
                   <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 )}
@@ -221,9 +311,11 @@ export default function DashboardAdmin() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-400/10 text-lg text-emerald-400">
               ✳
             </div>
+
             <p className="mt-3 text-sm font-bold text-white">
               Um futuro mais sustentável
             </p>
+
             <p className="mt-2 text-xs leading-5 text-slate-400">
               Cada equipamento destinado corretamente faz a diferença.
             </p>
@@ -235,11 +327,14 @@ export default function DashboardAdmin() {
             <div className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-400/20 bg-emerald-400/10 font-bold text-emerald-300">
               A
             </div>
+
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-white">
                 Administrador
               </p>
-              <p className="text-xs text-slate-500">Acesso administrativo</p>
+              <p className="text-xs text-slate-500">
+                Acesso administrativo
+              </p>
             </div>
           </div>
 
@@ -247,7 +342,8 @@ export default function DashboardAdmin() {
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-400/10"
           >
-            <span>↪</span> Sair do painel
+            <span>↪</span>
+            Sair do painel
           </button>
         </div>
       </aside>
@@ -259,21 +355,48 @@ export default function DashboardAdmin() {
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-400">
                 Administração / Dashboard
               </p>
+
               <h2 className="mt-1 truncate text-xl font-extrabold text-white sm:text-2xl">
                 Visão geral
               </h2>
             </div>
 
             <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={alternarTema}
+                aria-label={
+                  modoClaro
+                    ? 'Ativar tema escuro'
+                    : 'Ativar tema claro'
+                }
+                title={
+                  modoClaro
+                    ? 'Ativar tema escuro'
+                    : 'Ativar tema claro'
+                }
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg transition ${
+                  modoClaro
+                    ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+                    : 'border-white/10 text-slate-200 hover:bg-white/[0.05]'
+                }`}
+              >
+                {modoClaro ? '🌙' : '☀️'}
+              </button>
+
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-semibold text-white">
                   Administrador
                 </p>
-                <p className="text-xs text-slate-500">Gestão de doações</p>
+                <p className="text-xs text-slate-500">
+                  Gestão de doações
+                </p>
               </div>
+
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/20 bg-emerald-400/10 font-bold text-emerald-300">
                 A
               </div>
+
               <button
                 onClick={handleLogout}
                 className="rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05] lg:hidden"
@@ -311,12 +434,14 @@ export default function DashboardAdmin() {
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                   Bem-vindo ao E-Ciclo
                 </div>
+
                 <h3 className="mt-4 text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-3xl">
                   Gestão inteligente de
                   <span className="block text-emerald-400">
                     doações eletrônicas.
                   </span>
                 </h3>
+
                 <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
                   Acompanhe os registros, organize as etapas de atendimento e
                   gerencie as doações em um só lugar.
@@ -333,19 +458,27 @@ export default function DashboardAdmin() {
 
             <div className="relative mt-8 grid grid-cols-1 gap-3 border-t border-white/[0.08] pt-5 sm:grid-cols-3">
               <div>
-                <p className="text-xs text-slate-500">Registros cadastrados</p>
+                <p className="text-xs text-slate-500">
+                  Registros cadastrados
+                </p>
                 <p className="mt-1 text-lg font-bold text-white">
                   {estatisticas.total}
                 </p>
               </div>
+
               <div>
-                <p className="text-xs text-slate-500">Aguardando atendimento</p>
+                <p className="text-xs text-slate-500">
+                  Aguardando atendimento
+                </p>
                 <p className="mt-1 text-lg font-bold text-amber-300">
                   {estatisticas.pendentes}
                 </p>
               </div>
+
               <div>
-                <p className="text-xs text-slate-500">Doações concluídas</p>
+                <p className="text-xs text-slate-500">
+                  Doações concluídas
+                </p>
                 <p className="mt-1 text-lg font-bold text-emerald-300">
                   {estatisticas.concluidas}
                 </p>
@@ -374,6 +507,7 @@ export default function DashboardAdmin() {
                 simbolo="♧"
                 cor="bg-emerald-400/10 text-emerald-300"
               />
+
               <CardIndicador
                 titulo="Pendentes"
                 valor={estatisticas.pendentes}
@@ -382,6 +516,7 @@ export default function DashboardAdmin() {
                 cor="bg-amber-400/10 text-amber-300"
                 percentual={percentualPendente}
               />
+
               <CardIndicador
                 titulo="Em análise"
                 valor={estatisticas.analise}
@@ -389,6 +524,7 @@ export default function DashboardAdmin() {
                 simbolo="⌕"
                 cor="bg-blue-400/10 text-blue-300"
               />
+
               <CardIndicador
                 titulo="Concluídas"
                 valor={estatisticas.concluidas}
@@ -411,6 +547,7 @@ export default function DashboardAdmin() {
                     Acompanhamento por etapa
                   </p>
                 </div>
+
                 <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-xs font-semibold text-slate-400">
                   {estatisticas.total} registros
                 </span>
@@ -418,18 +555,33 @@ export default function DashboardAdmin() {
 
               <div className="mt-7 space-y-5">
                 {[
-                  { status: 'PENDENTE', quantidade: estatisticas.pendentes },
-                  { status: 'EM_ANALISE', quantidade: estatisticas.analise },
+                  {
+                    status: 'PENDENTE',
+                    quantidade: estatisticas.pendentes,
+                  },
+                  {
+                    status: 'EM_ANALISE',
+                    quantidade: estatisticas.analise,
+                  },
                   {
                     status: 'AGUARDANDO_COLETA',
                     quantidade: estatisticas.aguardando,
                   },
-                  { status: 'CONCLUIDO', quantidade: estatisticas.concluidas },
-                  { status: 'CANCELADO', quantidade: estatisticas.canceladas },
+                  {
+                    status: 'CONCLUIDO',
+                    quantidade: estatisticas.concluidas,
+                  },
+                  {
+                    status: 'CANCELADO',
+                    quantidade: estatisticas.canceladas,
+                  },
                 ].map(({ status, quantidade }) => {
                   const info = STATUS[status]
+
                   const percentual = estatisticas.total
-                    ? Math.round((quantidade / estatisticas.total) * 100)
+                    ? Math.round(
+                        (quantidade / estatisticas.total) * 100
+                      )
                     : 0
 
                   return (
@@ -443,6 +595,7 @@ export default function DashboardAdmin() {
                             {info.label}
                           </span>
                         </div>
+
                         <span className="font-semibold text-white">
                           {quantidade}
                           <span className="ml-2 font-normal text-slate-500">
@@ -450,6 +603,7 @@ export default function DashboardAdmin() {
                           </span>
                         </span>
                       </div>
+
                       <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
                         <div
                           className={`h-full rounded-full ${info.dot} transition-all duration-500`}
@@ -463,7 +617,9 @@ export default function DashboardAdmin() {
             </article>
 
             <article className="flex flex-col rounded-2xl border border-white/[0.08] bg-[#111b16] p-5 sm:p-6">
-              <h3 className="font-bold text-white">Resumo operacional</h3>
+              <h3 className="font-bold text-white">
+                Resumo operacional
+              </h3>
               <p className="mt-1 text-sm text-slate-500">
                 Situação atual dos registros
               </p>
@@ -474,8 +630,11 @@ export default function DashboardAdmin() {
                     <p className="text-sm font-semibold text-amber-200">
                       Aguardando atendimento
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">Pendentes</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Pendentes
+                    </p>
                   </div>
+
                   <span className="text-2xl font-extrabold text-amber-300">
                     {estatisticas.pendentes}
                   </span>
@@ -486,8 +645,11 @@ export default function DashboardAdmin() {
                     <p className="text-sm font-semibold text-violet-200">
                       Aguardando coleta
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">Próxima etapa</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Próxima etapa
+                    </p>
                   </div>
+
                   <span className="text-2xl font-extrabold text-violet-300">
                     {estatisticas.aguardando}
                   </span>
@@ -502,6 +664,7 @@ export default function DashboardAdmin() {
                       Sobre o total registrado
                     </p>
                   </div>
+
                   <span className="text-2xl font-extrabold text-emerald-300">
                     {percentualConcluido}%
                   </span>
@@ -546,6 +709,7 @@ export default function DashboardAdmin() {
                   <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
                     ⌕
                   </span>
+
                   <input
                     type="search"
                     value={busca}
@@ -561,6 +725,7 @@ export default function DashboardAdmin() {
                   className="rounded-xl border border-white/10 bg-[#0b110e] px-3 py-3 text-sm text-slate-200 outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/10"
                 >
                   <option value="TODOS">Todos os status</option>
+
                   {Object.entries(STATUS).map(([valor, info]) => (
                     <option key={valor} value={valor}>
                       {info.label}
@@ -575,16 +740,19 @@ export default function DashboardAdmin() {
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.03] text-3xl text-emerald-300">
                   ♧
                 </div>
+
                 <h4 className="mt-4 font-bold text-white">
                   {doacoes.length === 0
                     ? 'Nenhuma doação cadastrada'
                     : 'Nenhum resultado encontrado'}
                 </h4>
+
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
                   {doacoes.length === 0
                     ? 'Quando houver registros em mock_doacoes, eles aparecerão nesta área. Este painel ainda utiliza os dados locais do navegador.'
                     : 'Tente alterar a pesquisa ou selecionar outro status.'}
                 </p>
+
                 {(busca || filtroStatus !== 'TODOS') && (
                   <button
                     onClick={() => {
@@ -628,6 +796,7 @@ export default function DashboardAdmin() {
                               #{item.id ?? '—'}
                             </span>
                           </td>
+
                           <td className="px-6 py-4">
                             <p className="font-semibold text-white">
                               {item.equipamento || 'Não informado'}
@@ -636,6 +805,7 @@ export default function DashboardAdmin() {
                               {item.categoria || 'Categoria não informada'}
                             </p>
                           </td>
+
                           <td className="px-6 py-4">
                             <p className="font-medium text-slate-200">
                               {item.nomeDoador || 'Não informado'}
@@ -644,11 +814,13 @@ export default function DashboardAdmin() {
                               {item.telefone || item.email || 'Sem contato'}
                             </p>
                           </td>
+
                           <td className="px-6 py-4 text-slate-400">
                             {item.cidade
                               ? `${item.cidade}${item.estado ? ` / ${item.estado}` : ''}`
                               : 'Não informada'}
                           </td>
+
                           <td className="px-6 py-4">
                             <select
                               aria-label={`Status da doação ${item.id}`}
@@ -663,7 +835,6 @@ export default function DashboardAdmin() {
                                   <option
                                     key={valor}
                                     value={valor}
-                                    className="bg-[#111b16] text-slate-100"
                                   >
                                     {detalhe.label}
                                   </option>
@@ -671,6 +842,7 @@ export default function DashboardAdmin() {
                               )}
                             </select>
                           </td>
+
                           <td className="px-6 py-4 text-right">
                             <button
                               onClick={() =>
@@ -696,6 +868,129 @@ export default function DashboardAdmin() {
           </footer>
         </main>
       </div>
+
+      <style>{`
+        .dashboard-admin.tema-claro {
+          color-scheme: light;
+        }
+
+        .dashboard-admin.tema-claro aside,
+        .dashboard-admin.tema-claro header,
+        .dashboard-admin.tema-claro article,
+        .dashboard-admin.tema-claro main > section,
+        .dashboard-admin.tema-claro footer {
+          transition: background-color 200ms ease, border-color 200ms ease;
+        }
+
+        .dashboard-admin.tema-claro [class~="bg-[#0b110e]"] {
+          background-color: #f8fafc !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="bg-[#0e1712]"] {
+          background-color: #ffffff !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="bg-[#111b16]"] {
+          background-color: #ffffff !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-white"] {
+          color: #0f172a !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-slate-100"] {
+          color: #1e293b !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-slate-200"] {
+          color: #334155 !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-slate-300"] {
+          color: #334155 !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-slate-400"] {
+          color: #475569 !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-slate-500"],
+        .dashboard-admin.tema-claro [class~="text-slate-600"] {
+          color: #64748b !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="border-white/[0.08]"],
+        .dashboard-admin.tema-claro [class~="border-white/[0.06]"],
+        .dashboard-admin.tema-claro [class~="border-white/10"] {
+          border-color: #e2e8f0 !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="bg-white/[0.025]"],
+        .dashboard-admin.tema-claro [class~="bg-white/[0.03]"],
+        .dashboard-admin.tema-claro [class~="bg-white/[0.04]"],
+        .dashboard-admin.tema-claro [class~="bg-white/[0.05]"] {
+          background-color: #f1f5f9 !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-emerald-300"] {
+          color: #047857 !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-teal-300"] {
+          color: #0f766e !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-amber-300"] {
+          color: #b45309 !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-amber-200"] {
+          color: #92400e !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-blue-300"] {
+          color: #1d4ed8 !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-violet-300"] {
+          color: #6d28d9 !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-violet-200"] {
+          color: #5b21b6 !important;
+        }
+
+        .dashboard-admin.tema-claro [class~="text-red-300"] {
+          color: #b91c1c !important;
+        }
+
+        .dashboard-admin.tema-claro input,
+        .dashboard-admin.tema-claro select {
+          color-scheme: light;
+        }
+
+        .dashboard-admin.tema-claro input[class~="bg-[#0b110e]"],
+        .dashboard-admin.tema-claro select[class~="bg-[#0b110e]"] {
+          background-color: #ffffff !important;
+          color: #0f172a !important;
+        }
+
+        .dashboard-admin.tema-claro select option {
+          background-color: #ffffff;
+          color: #0f172a;
+        }
+
+        .dashboard-admin.tema-claro .sticky {
+          background-color: rgb(255 255 255 / 94%);
+        }
+
+        .dashboard-admin.tema-claro [class~="hover:bg-white/[0.025]"]:hover,
+        .dashboard-admin.tema-claro [class~="hover:bg-white/[0.03]"]:hover,
+        .dashboard-admin.tema-claro [class~="hover:bg-white/[0.04]"]:hover,
+        .dashboard-admin.tema-claro [class~="hover:bg-white/[0.05]"]:hover {
+          background-color: #f1f5f9 !important;
+        }
+      `}</style>
     </div>
   )
 }

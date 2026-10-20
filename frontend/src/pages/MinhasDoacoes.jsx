@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Navbar from '../components/public/Navbar'
 import { apiFetch } from '../services/api'
 
@@ -9,6 +9,26 @@ export default function MinhasDoacoes() {
   const [loading, setLoading] = useState(false)
   const [buscou, setBuscou] = useState(false)
   const [erro, setErro] = useState('')
+
+  // Lê o tema selecionado na Navbar.
+  const [tema, setTema] = useState(() =>
+    localStorage.getItem('eciclo-tema') === 'claro' ? 'claro' : 'escuro'
+  )
+
+  const modoClaro = tema === 'claro'
+
+  // Atualiza a página imediatamente quando o tema muda na Navbar.
+  useEffect(() => {
+    function atualizarTema(evento) {
+      setTema(evento.detail === 'claro' ? 'claro' : 'escuro')
+    }
+
+    window.addEventListener('eciclo-tema-alterado', atualizarTema)
+
+    return () => {
+      window.removeEventListener('eciclo-tema-alterado', atualizarTema)
+    }
+  }, [])
 
   const aplicarMascaraCPF = (valor) => {
     return valor
@@ -101,7 +121,102 @@ export default function MinhasDoacoes() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b110e] font-sans text-slate-100">
+    <div
+      className={`minhas-doacoes-page min-h-screen font-sans transition-colors duration-300 ${
+        modoClaro ? 'tema-claro' : 'tema-escuro'
+      }`}
+    >
+      <style>{`
+        .minhas-doacoes-page {
+          background-color: #0b110e;
+          color: #f1f5f9;
+        }
+
+        /* Fundo geral e superfícies */
+        .minhas-doacoes-page.tema-claro {
+          background-color: #f8fafc;
+          color: #0f172a;
+        }
+
+        .minhas-doacoes-page.tema-claro [class~="bg-[#0b110e]"],
+        .minhas-doacoes-page.tema-claro [class~="bg-[#111b16]"],
+        .minhas-doacoes-page.tema-claro [class~="bg-[#0d1510]"],
+        .minhas-doacoes-page.tema-claro [class~="bg-[#101b14]"] {
+          background-color: #ffffff !important;
+        }
+
+        .minhas-doacoes-page.tema-claro [class~="bg-white/[0.025]"],
+        .minhas-doacoes-page.tema-claro [class~="bg-white/[0.02]"],
+        .minhas-doacoes-page.tema-claro [class~="bg-white/[0.03]"],
+        .minhas-doacoes-page.tema-claro [class~="bg-white/[0.04]"],
+        .minhas-doacoes-page.tema-claro [class~="bg-white/5"] {
+          background-color: #f1f5f9 !important;
+        }
+
+        /* Textos principais */
+        .minhas-doacoes-page.tema-claro [class~="text-white"],
+        .minhas-doacoes-page.tema-claro [class~="text-slate-100"],
+        .minhas-doacoes-page.tema-claro [class~="text-slate-200"] {
+          color: #0f172a !important;
+        }
+
+        .minhas-doacoes-page.tema-claro [class~="text-slate-300"] {
+          color: #334155 !important;
+        }
+
+        .minhas-doacoes-page.tema-claro [class~="text-slate-400"] {
+          color: #475569 !important;
+        }
+
+        .minhas-doacoes-page.tema-claro [class~="text-slate-500"] {
+          color: #64748b !important;
+        }
+
+        .minhas-doacoes-page.tema-claro [class~="text-slate-600"] {
+          color: #64748b !important;
+        }
+
+        /* Campos de formulário */
+        .minhas-doacoes-page.tema-claro input {
+          color: #0f172a !important;
+          background-color: #ffffff !important;
+          border-color: #cbd5e1 !important;
+        }
+
+        .minhas-doacoes-page.tema-claro input::placeholder {
+          color: #94a3b8 !important;
+        }
+
+        /* Bordas dos cartões e separadores */
+        .minhas-doacoes-page.tema-claro [class~="border-white/[0.08]"],
+        .minhas-doacoes-page.tema-claro [class~="border-white/[0.07]"],
+        .minhas-doacoes-page.tema-claro [class~="border-white/[0.06]"],
+        .minhas-doacoes-page.tema-claro [class~="border-white/[0.12]"],
+        .minhas-doacoes-page.tema-claro [class~="border-white/10"] {
+          border-color: #e2e8f0 !important;
+        }
+
+        /* Botões neutros */
+        .minhas-doacoes-page.tema-claro [class~="hover:bg-[#101b14]"]:hover {
+          background-color: #f1f5f9 !important;
+        }
+
+        .minhas-doacoes-page.tema-claro [class~="hover:border-emerald-400/20"]:hover {
+          border-color: #6ee7b7 !important;
+        }
+
+        /* Mantém o texto escuro dos botões verdes */
+        .minhas-doacoes-page.tema-claro [class~="text-[#07120b]"] {
+          color: #07120b !important;
+        }
+
+        /* Acessibilidade por teclado */
+        .minhas-doacoes-page :is(button, a, input):focus-visible {
+          outline: 2px solid #10b981;
+          outline-offset: 3px;
+        }
+      `}</style>
+
       <Navbar />
 
       <main className="relative min-h-[calc(100vh-80px)] overflow-hidden px-5 py-10 sm:px-8 sm:py-14">
@@ -205,7 +320,9 @@ export default function MinhasDoacoes() {
                 role="alert"
                 className="mx-6 mt-6 rounded-xl border border-red-400/20 bg-red-400/[0.07] p-4 text-sm leading-6 text-red-300 sm:mx-8"
               >
-                <p className="font-bold">Não foi possível concluir a consulta</p>
+                <p className="font-bold">
+                  Não foi possível concluir a consulta
+                </p>
                 <p className="mt-1">{erro}</p>
               </div>
             )}

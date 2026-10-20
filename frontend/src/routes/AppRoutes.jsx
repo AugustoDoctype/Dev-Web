@@ -11,12 +11,12 @@ import Confirmacao from '../pages/Confirmacao'
 
 // Páginas de autenticação
 import Login from '../pages/Login'
-import LoginAdmin from '../pages/admin/Login'
+import LoginAdmin from '../pages/admin/LoginAdmin'
 import Cadastro from '../pages/cadastro'
 
 // Páginas administrativas
 import DashboardAdmin from '../pages/admin/Dashboard'
-import DoacoesAdmin from '../pages/admin/Doacoes'
+import DoacoesAdmin from '../pages/admin/DoacoesAdmin'
 import DetalhesDoacaoAdmin from '../pages/admin/DetalhesDoacao'
 import PontosDeColetaAdmin from '../pages/admin/PontosDeColetaAdmin'
 

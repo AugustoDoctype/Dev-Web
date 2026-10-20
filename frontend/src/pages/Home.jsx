@@ -1,6 +1,7 @@
-
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/public/Navbar'
+import '../tema.css'
 
 const beneficios = [
   {
@@ -72,13 +73,47 @@ function IconeFolha() {
 }
 
 export default function Home() {
+  const [tema, setTema] = useState(
+    () => localStorage.getItem('eciclo-tema') || 'escuro'
+  )
+
+  useEffect(() => {
+    const atualizarTema = (evento) => {
+      setTema(
+        evento?.detail ||
+          localStorage.getItem('eciclo-tema') ||
+          'escuro'
+      )
+    }
+
+    window.addEventListener('eciclo-tema-alterado', atualizarTema)
+
+    return () => {
+      window.removeEventListener('eciclo-tema-alterado', atualizarTema)
+    }
+  }, [])
+
+  const modoClaro = tema === 'claro'
+
   return (
-    <div className="min-h-screen overflow-hidden bg-[#080e0d] font-sans text-slate-100">
+    <div
+      className={`min-h-screen overflow-hidden font-sans transition-colors duration-300 ${
+        modoClaro
+          ? 'tema-claro bg-gray-50 text-gray-800'
+          : 'bg-[#080e0d] text-slate-100'
+      }`}
+    >
       <Navbar />
 
       <main>
         {/* Hero */}
-        <section className="relative isolate overflow-hidden border-b border-white/[0.06] bg-gradient-to-br from-[#0c1914] via-[#080e0d] to-[#0b1514]">
+        <section
+          className={`relative isolate overflow-hidden border-b ${
+            modoClaro
+              ? 'border-gray-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50'
+              : 'border-white/[0.06] bg-gradient-to-br from-[#0c1914] via-[#080e0d] to-[#0b1514]'
+          }`}
+        >
           <div className="pointer-events-none absolute -right-24 -top-24 -z-10 h-96 w-96 rounded-full bg-emerald-500/[0.12] blur-[100px]" />
           <div className="pointer-events-none absolute -bottom-32 -left-24 -z-10 h-96 w-96 rounded-full bg-teal-500/[0.08] blur-[100px]" />
 
@@ -93,14 +128,22 @@ export default function Home() {
                 TECNOLOGIA COM RESPONSABILIDADE
               </div>
 
-              <h1 className="text-4xl font-extrabold leading-[1.12] tracking-tight text-white sm:text-5xl lg:text-6xl">
+              <h1
+                className={`text-4xl font-extrabold leading-[1.12] tracking-tight sm:text-5xl lg:text-6xl ${
+                  modoClaro ? 'text-gray-900' : 'text-white'
+                }`}
+              >
                 Seu eletrônico antigo pode ter um{' '}
                 <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-teal-300 bg-clip-text text-transparent">
                   novo destino.
                 </span>
               </h1>
 
-              <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-slate-400 sm:text-lg lg:mx-0">
+              <p
+                className={`mx-auto mt-6 max-w-xl text-base leading-8 sm:text-lg lg:mx-0 ${
+                  modoClaro ? 'text-gray-600' : 'text-slate-400'
+                }`}
+              >
                 O E-Ciclo conecta você a uma forma mais consciente de lidar
                 com resíduos eletrônicos. Consulte informações, registre
                 doações e descubra opções de descarte adequado.
@@ -119,14 +162,22 @@ export default function Home() {
 
                 <Link
                   to="/pontos-de-coleta"
-                  className="inline-flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-6 py-4 text-sm font-bold text-slate-200 transition duration-300 hover:-translate-y-1 hover:border-emerald-400/30 hover:bg-emerald-400/[0.06] hover:text-emerald-300"
+                  className={`inline-flex items-center justify-center gap-3 rounded-xl border px-6 py-4 text-sm font-bold transition duration-300 hover:-translate-y-1 ${
+                    modoClaro
+                      ? 'border-gray-300 bg-white text-gray-700 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700'
+                      : 'border-white/10 bg-white/[0.035] text-slate-200 hover:border-emerald-400/30 hover:bg-emerald-400/[0.06] hover:text-emerald-300'
+                  }`}
                 >
                   <span aria-hidden="true">⌖</span>
                   Explorar o mapa
                 </Link>
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-sm text-slate-500 lg:justify-start">
+              <div
+                className={`mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-sm lg:justify-start ${
+                  modoClaro ? 'text-gray-500' : 'text-slate-500'
+                }`}
+              >
                 <span className="inline-flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
                   Descarte responsável
@@ -141,8 +192,20 @@ export default function Home() {
             <div className="relative mx-auto w-full max-w-lg">
               <div className="pointer-events-none absolute -inset-5 rounded-[2.5rem] bg-emerald-400/[0.10] blur-3xl" />
 
-              <div className="relative rounded-[2rem] border border-white/10 bg-[#101b17]/90 p-3 shadow-2xl shadow-black/30 backdrop-blur sm:p-4">
-                <div className="overflow-hidden rounded-3xl border border-white/[0.06] bg-[#13221b]">
+              <div
+                className={`relative rounded-[2rem] border p-3 shadow-2xl backdrop-blur sm:p-4 ${
+                  modoClaro
+                    ? 'border-gray-200 bg-white/90 shadow-gray-300/30'
+                    : 'border-white/10 bg-[#101b17]/90 shadow-black/30'
+                }`}
+              >
+                <div
+                  className={`overflow-hidden rounded-3xl border ${
+                    modoClaro
+                      ? 'border-gray-100 bg-gray-100'
+                      : 'border-white/[0.06] bg-[#13221b]'
+                  }`}
+                >
                   <img
                     src="https://static.vecteezy.com/system/resources/previews/073/346/496/non_2x/recycling-electronics-sustainability-illustration-vector.jpg"
                     alt="Ilustração de reciclagem e sustentabilidade eletrônica"
@@ -157,10 +220,18 @@ export default function Home() {
                   </div>
 
                   <div>
-                    <p className="font-bold leading-6 text-white">
+                    <p
+                      className={`font-bold leading-6 ${
+                        modoClaro ? 'text-gray-900' : 'text-white'
+                      }`}
+                    >
                       Dê um destino melhor aos seus eletrônicos
                     </p>
-                    <p className="mt-1 text-sm text-slate-400">
+                    <p
+                      className={`mt-1 text-sm ${
+                        modoClaro ? 'text-gray-500' : 'text-slate-400'
+                      }`}
+                    >
                       Pequenas atitudes fazem diferença.
                     </p>
                   </div>
@@ -171,11 +242,21 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="absolute -left-3 top-10 hidden rounded-2xl border border-emerald-400/15 bg-[#101b17]/95 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur sm:block lg:-left-8">
-                <p className="text-xs font-medium text-slate-400">
+              <div
+                className={`absolute -left-3 top-10 hidden rounded-2xl border px-4 py-3 shadow-xl backdrop-blur sm:block lg:-left-8 ${
+                  modoClaro
+                    ? 'border-gray-200 bg-white/95 shadow-gray-300/30'
+                    : 'border-emerald-400/15 bg-[#101b17]/95 shadow-black/20'
+                }`}
+              >
+                <p
+                  className={`text-xs font-medium ${
+                    modoClaro ? 'text-gray-500' : 'text-slate-400'
+                  }`}
+                >
                   Nossa missão
                 </p>
-                <p className="mt-1 text-sm font-extrabold text-emerald-300">
+                <p className="mt-1 text-sm font-extrabold text-emerald-600">
                   Um ciclo mais sustentável
                 </p>
               </div>
@@ -184,19 +265,33 @@ export default function Home() {
         </section>
 
         {/* Materiais */}
-        <section className="border-b border-white/[0.06] bg-[#0a100e] py-16 sm:py-20">
+        <section
+          className={`border-b py-16 sm:py-20 ${
+            modoClaro
+              ? 'border-gray-200 bg-gray-50'
+              : 'border-white/[0.06] bg-[#0a100e]'
+          }`}
+        >
           <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-8">
             <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 sm:text-sm">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600 sm:text-sm">
                   O que fazer circular?
                 </p>
 
-                <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                <h2
+                  className={`mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl ${
+                    modoClaro ? 'text-gray-900' : 'text-white'
+                  }`}
+                >
                   Seus eletrônicos merecem o destino certo.
                 </h2>
 
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
+                <p
+                  className={`mt-3 max-w-2xl text-sm leading-7 sm:text-base ${
+                    modoClaro ? 'text-gray-600' : 'text-slate-400'
+                  }`}
+                >
                   Conheça algumas categorias de equipamentos que podem
                   precisar de descarte ou encaminhamento especializado.
                 </p>
@@ -204,7 +299,7 @@ export default function Home() {
 
               <Link
                 to="/como-funciona"
-                className="group inline-flex shrink-0 items-center gap-2 text-sm font-bold text-emerald-300 transition hover:text-emerald-200"
+                className="group inline-flex shrink-0 items-center gap-2 text-sm font-bold text-emerald-600 transition hover:text-emerald-700"
               >
                 Saiba como funciona
                 <span className="transition-transform duration-300 group-hover:translate-x-1">
@@ -217,23 +312,41 @@ export default function Home() {
               {materiais.map((material, index) => (
                 <div
                   key={material.nome}
-                  className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-[#111d18] to-[#0c1411] p-5 transition duration-300 hover:-translate-y-1 hover:border-emerald-400/25 hover:shadow-xl hover:shadow-emerald-950/20 sm:p-6"
+                  className={`group relative overflow-hidden rounded-2xl border p-5 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-6 ${
+                    modoClaro
+                      ? 'border-gray-200 bg-white hover:border-emerald-300 hover:shadow-emerald-100'
+                      : 'border-white/[0.08] bg-gradient-to-br from-[#111d18] to-[#0c1411] hover:border-emerald-400/25 hover:shadow-emerald-950/20'
+                  }`}
                 >
-                  <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-emerald-400/[0.04] blur-2xl transition duration-300 group-hover:bg-emerald-400/[0.10]" />
+                  <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-emerald-400/[0.06] blur-2xl transition duration-300 group-hover:bg-emerald-400/[0.10]" />
 
-                  <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-white/[0.07] bg-white/[0.035] text-3xl transition duration-300 group-hover:scale-105 group-hover:border-emerald-400/20 group-hover:bg-emerald-400/[0.08]">
+                  <div
+                    className={`relative flex h-14 w-14 items-center justify-center rounded-2xl border text-3xl transition duration-300 group-hover:scale-105 ${
+                      modoClaro
+                        ? 'border-gray-200 bg-gray-50 group-hover:border-emerald-200 group-hover:bg-emerald-50'
+                        : 'border-white/[0.07] bg-white/[0.035] group-hover:border-emerald-400/20 group-hover:bg-emerald-400/[0.08]'
+                    }`}
+                  >
                     {material.emoji}
                   </div>
 
-                  <p className="mt-5 text-[10px] font-bold tracking-[0.18em] text-emerald-400/70">
+                  <p className="relative mt-5 text-[10px] font-bold tracking-[0.18em] text-emerald-600">
                     CATEGORIA 0{index + 1}
                   </p>
 
-                  <h3 className="mt-2 text-sm font-bold leading-6 text-slate-100 sm:text-base">
+                  <h3
+                    className={`relative mt-2 text-sm font-bold leading-6 sm:text-base ${
+                      modoClaro ? 'text-gray-800' : 'text-slate-100'
+                    }`}
+                  >
                     {material.nome}
                   </h3>
 
-                  <p className="mt-2 text-xs leading-5 text-slate-400 sm:text-sm">
+                  <p
+                    className={`relative mt-2 text-xs leading-5 sm:text-sm ${
+                      modoClaro ? 'text-gray-600' : 'text-slate-400'
+                    }`}
+                  >
                     Consulte as orientações de descarte adequado.
                   </p>
                 </div>
@@ -243,21 +356,33 @@ export default function Home() {
         </section>
 
         {/* Funcionalidades */}
-        <section className="relative overflow-hidden bg-[#080e0d] py-16 sm:py-24">
+        <section
+          className={`relative overflow-hidden py-16 sm:py-24 ${
+            modoClaro ? 'bg-white' : 'bg-[#080e0d]'
+          }`}
+        >
           <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-emerald-500/[0.06] blur-[100px]" />
 
           <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 sm:text-sm">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600 sm:text-sm">
                 Simples e acessível
               </p>
 
-              <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              <h2
+                className={`mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl ${
+                  modoClaro ? 'text-gray-900' : 'text-white'
+                }`}
+              >
                 Tudo para começar um{' '}
-                <span className="text-emerald-400">novo ciclo.</span>
+                <span className="text-emerald-500">novo ciclo.</span>
               </h2>
 
-              <p className="mt-4 text-sm leading-7 text-slate-400 sm:text-base">
+              <p
+                className={`mt-4 text-sm leading-7 sm:text-base ${
+                  modoClaro ? 'text-gray-600' : 'text-slate-400'
+                }`}
+              >
                 Utilize as ferramentas do E-Ciclo para registrar suas
                 doações, consultar informações e conhecer o funcionamento
                 da plataforma.
@@ -268,29 +393,43 @@ export default function Home() {
               {beneficios.map((beneficio) => (
                 <article
                   key={beneficio.numero}
-                  className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-[#111c17] to-[#0b1210] p-6 transition duration-300 hover:-translate-y-1 hover:border-emerald-400/25 hover:shadow-2xl hover:shadow-emerald-950/20 sm:p-8"
+                  className={`group relative overflow-hidden rounded-3xl border p-6 transition duration-300 hover:-translate-y-1 hover:shadow-2xl sm:p-8 ${
+                    modoClaro
+                      ? 'border-gray-200 bg-gradient-to-br from-white to-gray-50 hover:border-emerald-300 hover:shadow-emerald-100'
+                      : 'border-white/[0.08] bg-gradient-to-br from-[#111c17] to-[#0b1210] hover:border-emerald-400/25 hover:shadow-emerald-950/20'
+                  }`}
                 >
-                  <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-emerald-400/[0.035] blur-2xl transition duration-300 group-hover:bg-emerald-400/[0.09]" />
+                  <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-emerald-400/[0.05] blur-2xl transition duration-300 group-hover:bg-emerald-400/[0.09]" />
 
                   <div className="relative flex items-center justify-between">
                     <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.07] text-3xl transition duration-300 group-hover:border-emerald-400/30 group-hover:bg-emerald-400/[0.12]">
                       {beneficio.icone}
                     </span>
 
-                    <span className="text-sm font-extrabold tracking-widest text-emerald-400/50">
+                    <span className="text-sm font-extrabold tracking-widest text-emerald-500/70">
                       {beneficio.numero}
                     </span>
                   </div>
 
-                  <h3 className="relative mt-6 text-xl font-extrabold text-white transition group-hover:text-emerald-300">
+                  <h3
+                    className={`relative mt-6 text-xl font-extrabold transition ${
+                      modoClaro
+                        ? 'text-gray-900 group-hover:text-emerald-700'
+                        : 'text-white group-hover:text-emerald-300'
+                    }`}
+                  >
                     {beneficio.titulo}
                   </h3>
 
-                  <p className="relative mt-3 text-sm leading-7 text-slate-400">
+                  <p
+                    className={`relative mt-3 text-sm leading-7 ${
+                      modoClaro ? 'text-gray-600' : 'text-slate-400'
+                    }`}
+                  >
                     {beneficio.descricao}
                   </p>
 
-                  <div className="mt-6 h-px w-10 bg-emerald-400/40 transition-all duration-300 group-hover:w-16 group-hover:bg-emerald-400" />
+                  <div className="mt-6 h-px w-10 bg-emerald-400/60 transition-all duration-300 group-hover:w-16 group-hover:bg-emerald-500" />
                 </article>
               ))}
             </div>
@@ -298,8 +437,18 @@ export default function Home() {
         </section>
 
         {/* Chamada final */}
-        <section className="bg-[#0a100e] px-5 py-16 sm:px-8 sm:py-20">
-          <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-gradient-to-br from-[#123426] via-[#0d241a] to-[#0b1712] px-6 py-12 text-center shadow-2xl shadow-black/20 sm:px-12 sm:py-16">
+        <section
+          className={`px-5 py-16 sm:px-8 sm:py-20 ${
+            modoClaro ? 'bg-gray-50' : 'bg-[#0a100e]'
+          }`}
+        >
+          <div
+            className={`relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border px-6 py-12 text-center shadow-2xl sm:px-12 sm:py-16 ${
+              modoClaro
+                ? 'border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50 shadow-gray-200'
+                : 'border-emerald-400/20 bg-gradient-to-br from-[#123426] via-[#0d241a] to-[#0b1712] shadow-black/20'
+            }`}
+          >
             <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[40px] border-emerald-300/[0.06]" />
             <div className="pointer-events-none absolute -bottom-24 -left-12 h-56 w-56 rounded-full border-[35px] border-emerald-300/[0.05]" />
             <div className="pointer-events-none absolute left-1/2 top-0 h-56 w-56 -translate-x-1/2 rounded-full bg-emerald-400/[0.08] blur-[80px]" />
@@ -312,11 +461,19 @@ export default function Home() {
                 🌱
               </span>
 
-              <h2 className="mt-5 text-3xl font-extrabold leading-tight text-white sm:text-4xl">
+              <h2
+                className={`mt-5 text-3xl font-extrabold leading-tight sm:text-4xl ${
+                  modoClaro ? 'text-gray-900' : 'text-white'
+                }`}
+              >
                 O próximo passo para um futuro melhor começa com você.
               </h2>
 
-              <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-emerald-50/75 sm:text-base">
+              <p
+                className={`mx-auto mt-4 max-w-xl text-sm leading-7 sm:text-base ${
+                  modoClaro ? 'text-gray-600' : 'text-emerald-50/75'
+                }`}
+              >
                 Descubra como funciona o E-Ciclo e participe de uma
                 iniciativa que incentiva o descarte responsável de resíduos
                 eletrônicos.
@@ -335,7 +492,11 @@ export default function Home() {
 
                 <Link
                   to="/pontos-de-coleta"
-                  className="inline-flex items-center justify-center rounded-xl border border-emerald-200/20 bg-white/[0.03] px-6 py-3.5 text-sm font-bold text-white transition duration-300 hover:border-emerald-300/40 hover:bg-emerald-300/[0.08] hover:text-emerald-200"
+                  className={`inline-flex items-center justify-center rounded-xl border px-6 py-3.5 text-sm font-bold transition duration-300 ${
+                    modoClaro
+                      ? 'border-gray-300 bg-white text-gray-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700'
+                      : 'border-emerald-200/20 bg-white/[0.03] text-white hover:border-emerald-300/40 hover:bg-emerald-300/[0.08] hover:text-emerald-200'
+                  }`}
                 >
                   Ver pontos de coleta
                 </Link>
@@ -346,23 +507,37 @@ export default function Home() {
       </main>
 
       {/* Rodapé */}
-      <footer className="border-t border-white/[0.07] bg-[#070c0b]">
+      <footer
+        className={`border-t ${
+          modoClaro
+            ? 'border-gray-200 bg-white'
+            : 'border-white/[0.07] bg-[#070c0b]'
+        }`}
+      >
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 sm:px-8 md:flex-row md:items-center md:justify-between lg:px-8">
           <Link
             to="/"
-            className="text-xl font-extrabold tracking-tight text-white transition hover:text-emerald-300"
+            className={`text-xl font-extrabold tracking-tight transition hover:text-emerald-500 ${
+              modoClaro ? 'text-gray-900' : 'text-white'
+            }`}
           >
-            E-<span className="text-emerald-400">Ciclo</span>
+            E-<span className="text-emerald-500">Ciclo</span>
             <span className="text-emerald-300">.</span>
           </Link>
 
-          <p className="text-sm leading-6 text-slate-400">
+          <p
+            className={`text-sm leading-6 ${
+              modoClaro ? 'text-gray-600' : 'text-slate-400'
+            }`}
+          >
             Tecnologia e sustentabilidade em um novo ciclo.
           </p>
 
           <Link
             to="/como-funciona"
-            className="text-sm font-semibold text-slate-400 transition hover:text-emerald-300"
+            className={`text-sm font-semibold transition hover:text-emerald-500 ${
+              modoClaro ? 'text-gray-600' : 'text-slate-400'
+            }`}
           >
             Conheça o projeto →
           </Link>
