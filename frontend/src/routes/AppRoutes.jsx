@@ -1,42 +1,56 @@
 import { Routes, Route } from 'react-router-dom'
 
-// Páginas Públicas
+// Páginas públicas
 import Home from '../pages/Home'
 import Doacao from '../pages/Doacao'
 import ComoFunciona from '../pages/ComoFunciona'
+import PontosDeColeta from '../pages/PontosDeColeta'
 import MinhasDoacoes from '../pages/MinhasDoacoes'
 import DetalhesMinhaDoacao from '../pages/DetalhesMinhaDoacao'
 import Confirmacao from '../pages/Confirmacao'
 
-// Páginas de Autenticação
-import LoginAdmin from '../pages/admin/Login'
+// Páginas de autenticação
+import Login from '../pages/Login'
+import LoginAdmin from '../pages/admin/LoginAdmin'
 import Cadastro from '../pages/cadastro'
 
-// Páginas Administrativas
+// Páginas administrativas
 import DashboardAdmin from '../pages/admin/Dashboard'
-import DoacoesAdmin from '../pages/admin/Doacoes'
+import DoacoesAdmin from '../pages/admin/DoacoesAdmin'
 import DetalhesDoacaoAdmin from '../pages/admin/DetalhesDoacao'
+import PontosDeColetaAdmin from '../pages/admin/PontosDeColetaAdmin'
 
-// Componente de Proteção
+// Proteção de rotas
 import ProtectedRoute from '../components/auth/ProtectedRoute'
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Rotas Públicas */}
+      {/* Rotas públicas */}
       <Route path="/" element={<Home />} />
       <Route path="/doar" element={<Doacao />} />
       <Route path="/como-funciona" element={<ComoFunciona />} />
+
+      <Route
+        path="/pontos-de-coleta"
+        element={<PontosDeColeta />}
+      />
+
       <Route path="/minhas-doacoes" element={<MinhasDoacoes />} />
-      <Route path="/minhas-doacoes/:id" element={<DetalhesMinhaDoacao />} />
+
+      <Route
+        path="/minhas-doacoes/:id"
+        element={<DetalhesMinhaDoacao />}
+      />
+
       <Route path="/confirmacao" element={<Confirmacao />} />
 
-      {/* Autenticação - Rota /login apontando para o Login existente */}
-      <Route path="/login" element={<LoginAdmin />} />
+      {/* Autenticação */}
+      <Route path="/login" element={<Login />} />
       <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/admin/login" element={<LoginAdmin />} />
 
-      {/* Painel Admin Protegido */}
+      {/* Painel administrativo protegido */}
       <Route
         path="/admin/dashboard"
         element={
@@ -45,6 +59,7 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/admin/doacoes"
         element={
@@ -53,11 +68,22 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/admin/doacoes/:id"
         element={
           <ProtectedRoute>
             <DetalhesDoacaoAdmin />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Gerenciamento de pontos de coleta */}
+      <Route
+        path="/admin/pontos-de-coleta"
+        element={
+          <ProtectedRoute>
+            <PontosDeColetaAdmin />
           </ProtectedRoute>
         }
       />

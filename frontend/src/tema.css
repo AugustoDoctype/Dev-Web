@@ -1,0 +1,53 @@
+/* Tema claro do E-Ciclo */
+.tema-claro {
+  background-color: #f8faf9 !important;
+  color: #1f2937 !important;
+}
+
+/* Fundos escuros sólidos */
+.tema-claro [class*="bg-[#080e0d"],
+.tema-claro [class*="bg-[#0a100e"],
+.tema-claro [class*="bg-[#070c0b"],
+.tema-claro [class*="bg-[#0b110e"],
+.tema-claro [class*="bg-[#0b1311"],
+.tema-claro [class*="bg-[#101b17"],
+.tema-claro [class*="bg-[#111d18"],
+.tema-claro [class*="bg-[#0c1411"],
+.tema-claro [class*="bg-[#111c17"],
+.tema-claro [class*="bg-[#0b1210"],
+.tema-claro [class*="bg-[#13221b"] {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Seções com gradientes escuros */
+.tema-claro [class*="bg-gradient-to-br"] {
+  background-image: none !important;
+  background-color: #f1f5f3 !important;
+}
+
+/* Textos claros passam a ser escuros */
+.tema-claro [class*="text-white"],
+.tema-claro [class*="text-slate-100"],
+.tema-claro [class*="text-slate-200"],
+.tema-claro [class*="text-slate-300"],
+.tema-claro [class*="text-slate-400"],
+.tema-claro [class*="text-slate-500"] {
+  color: #374151 !important;
+}
+
+/* Bordas */
+.tema-claro [class*="border-white/"] {
+  border-color: #dbe5df !important;
+}
+
+/* Cartões e superfícies */
+.tema-claro article,
+.tema-claro footer {
+  border-color: #dbe5df;
+}
+
+/* Imagens continuam com suas cores originais */
+.tema-claro img {
+  filter: none;
+}
