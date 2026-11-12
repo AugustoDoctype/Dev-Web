@@ -1,6 +1,5 @@
 name: Backend CI
 
-# O pipeline será ativado automaticamente sempre que alguém fizer um push ou pull request
 on:
   push:
     branches: [ "main", "master" ]
@@ -9,8 +8,12 @@ on:
 
 jobs:
   build-and-test:
-    # Cria uma máquina virtual limpa com a versão mais recente do Ubuntu (Linux)
     runs-on: ubuntu-latest
+
+    # Isso avisa o GitHub para rodar tudo dentro da pasta backend
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
     - name: Baixar o código do repositório
@@ -19,7 +22,6 @@ jobs:
     - name: Configurar o Node.js
       uses: actions/setup-node@v4
       with:
-
         node-version: '22' 
 
     - name: Instalar dependências
@@ -30,7 +32,6 @@ jobs:
 
     - name: Executar testes automatizados
       run: npm test
-      # Injeta variáveis de ambiente simuladas apenas para a máquina virtual do GitHub
       env:
         DATABASE_URL: "file:./dev.db"
         JWT_SECRET: "chave_secreta_de_teste_ci"
