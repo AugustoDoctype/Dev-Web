@@ -1,0 +1,39 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    # ATENÇÃO: Se o front-end ficar dentro de uma pasta específica no repositório 
+    # (ex: pasta "frontend"), descomente a linha abaixo e ajuste o nome. 
+    # Se for um repositório só pro front-end, pode apagar essa linha.
+    # defaults:
+    #   run:
+    #     working-directory: ./frontend
+
+    steps:
+    - name: Baixar o código do repositório
+      uses: actions/checkout@v4
+
+    - name: Configurar o Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22' 
+
+    - name: Instalar dependências
+      run: npm install
+
+    - name: Verificar erros de Lint (Opcional, se usarem ESLint)
+      run: npm run lint
+      # O continue-on-error evita que o pipeline quebre se houver apenas avisos de formatação
+      continue-on-error: true
+
+    - name: Testar o Build do Vite
+      # Se o build falhar aqui (ex: importação errada), a pipeline reprova o commit na hora
+      run: npm run build
