@@ -1,0 +1,36 @@
+name: Backend CI
+
+# O pipeline será ativado automaticamente sempre que alguém fizer um push ou pull request
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    # Cria uma máquina virtual limpa com a versão mais recente do Ubuntu (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Baixar o código do repositório
+      uses: actions/checkout@v4
+
+    - name: Configurar o Node.js
+      uses: actions/setup-node@v4
+      with:
+
+        node-version: '22' 
+
+    - name: Instalar dependências
+      run: npm install
+
+    - name: Gerar o cliente do Prisma
+      run: npx prisma generate
+
+    - name: Executar testes automatizados
+      run: npm test
+      # Injeta variáveis de ambiente simuladas apenas para a máquina virtual do GitHub
+      env:
+        DATABASE_URL: "file:./dev.db"
+        JWT_SECRET: "chave_secreta_de_teste_ci"

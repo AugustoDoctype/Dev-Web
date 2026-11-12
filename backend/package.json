@@ -1,11 +1,12 @@
 {
-  "name": "REConecta-backend",
+  "name": "Eciclo-backend",
   "version": "1.0.0",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "echo \"Pipeline OK! Testes automatizados serão implementados em breve.\" && exit 0"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
