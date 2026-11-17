@@ -1,3 +1,5 @@
+# Arquivos enviados pelos usuários
+backend/uploads/
 # Dependências do Node (Front e Back)
 node_modules/
 **/node_modules/
