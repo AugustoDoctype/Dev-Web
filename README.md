@@ -1,130 +1,199 @@
-# 🚀 Projeto Web (Front-end & Back-end)
+# ♻️ E-Ciclo
 
-Este é o repositório principal do projeto, estruturado no formato de *monorepo simples*, contendo o **Front-end** (React + Vite) e o **Back-end** (Node.js + Express) em pastas isoladas.
+**Plataforma web para registro de doações e orientação sobre descarte responsável de resíduos eletrônicos.**
 
----
+O E-Ciclo reúne informações sobre descarte de eletrônicos, permite cadastrar doadores e equipamentos e oferece uma interface administrativa para acompanhar os registros. O projeto está em desenvolvimento e utiliza um **monorepo** com frontend e backend separados.
 
-## 📁 Estrutura do Repositório
+> **Estado do projeto:** ambiente de desenvolvimento validado com Docker Compose em duas máquinas Linux. Algumas telas e integrações ainda estão em desenvolvimento; os pontos de coleta exibidos no mapa incluem dados demonstrativos e não devem ser tratados como locais reais verificados.
+
+## Funcionalidades
+
+- Interface pública com informações sobre descarte responsável de eletrônicos.
+- Cadastro de doadores e registro de equipamentos, com envio opcional de foto pela API.
+- Listagem e atualização de equipamentos e painel de indicadores com autenticação administrativa.
+- Mapa interativo de pontos de coleta, atualmente com dados demonstrativos e armazenamento local de pontos personalizados.
+- Telas para acompanhamento de doações, ainda dependentes de integração com endpoints não presentes no backend atual.
+- Documentação interativa de parte da API usando Swagger UI.
+
+## Tecnologias
+
+| Camada | Tecnologias |
+| --- | --- |
+| Frontend | React, Vite, React Router, Tailwind CSS, React Leaflet / Leaflet |
+| Backend | Node.js 22, Express, Prisma ORM, Zod, Multer, JWT |
+| Banco de dados | SQLite |
+| Infraestrutura de desenvolvimento | Docker, Docker Compose |
+| Integração contínua | GitHub Actions (workflows de frontend e backend) |
+
+## Estrutura do repositório
 
 ```text
-.
-├── frontend/             # Aplicação React + Vite
-│   ├── src/              # Códigos fonte da interface
-│   ├── public/           # Arquivos estáticos
-│   ├── package.json      # Dependências do Front-end
-│   └── vite.config.js    # Configurações do Vite
-│
-├── backend/              # API Node.js + Express
-│   ├── src/              # Rotas e controladores da API
-│   ├── index.js          # Ponto de entrada do servidor
-│   └── package.json      # Dependências do Back-end
-│
-├── .gitignore            # Arquivos e pastas ignorados pelo Git
-└── README.md             # Documentação do projeto
+Dev-Web/
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── routes/
+│   │   └── services/
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   └── package.json
+├── backend/
+│   ├── src/
+│   │   ├── lib/
+│   │   ├── middlewares/
+│   │   ├── routes/
+│   │   └── schemas/
+│   ├── prisma/
+│   │   ├── migrations/
+│   │   └── schema.prisma
+│   ├── uploads/
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   └── package.json
+├── .github/workflows/
+├── docker-compose.yml
+└── README.md
 ```
 
----
+## Executando com Docker (recomendado)
 
-## 📋 Pré-requisitos
+### Pré-requisitos
 
-Antes de começar, certifique-se de ter instalado em sua máquina:
-* [Node.js](https://nodejs.org/) (Versão **v18.x** ou superior, recomendado **v20+** ou **v22+**)
-* [npm](https://www.npmjs.com/) (Gerenciador de pacotes do Node)
-* [Git](https://git-scm.com/)
+- **Git**;
+- **Docker Engine** (ou Docker Desktop com o engine ativo);
+- **Docker Compose V2**, disponível pelo comando `docker compose`.
 
----
+> Não é necessário instalar Node.js, npm ou Prisma diretamente no computador para executar o ambiente via Docker. A instalação e o funcionamento do engine de containers continuam sendo pré-requisitos.
 
-## ⚙️ Passo a Passo para Rodar o Projeto
+### 1. Clonar o repositório
 
-Siga as instruções abaixo para clonar, instalar as dependências e executar o projeto localmente.
-
-### 1. Clonar o Repositório
-
-No seu terminal, clone o projeto e acesse a pasta raiz:
+Para testar a configuração em desenvolvimento desta branch:
 
 ```bash
-# Clonar o repositório
-git clone <URL_DO_REPOSITORIO>
-
-# Entrar na pasta do projeto
+git clone -b feature/docker-setup https://github.com/AugustoDoctype/Dev-Web.git
 cd Dev-Web
 ```
 
----
+> Após a integração da branch à `main`, substitua o comando acima pelo clone padrão do repositório.
 
-### 2. Configurar e Executar o Back-end (Node.js)
+### 2. Construir e iniciar os serviços
 
-Abra um terminal e execute os comandos abaixo para subir o servidor da API:
-
-```bash
-# 1. Entrar na pasta do backend
-cd backend
-
-# 2. Instalar as dependências do servidor
-npm install
-
-# 3. Iniciar o servidor em modo de desenvolvimento (com Nodemon)
-npm run dev
-```
-
-> 🟢 O servidor do Back-end estará rodando em: `http://localhost:3001`
-
----
-
-### 3. Configurar e Executar o Front-end (React + Vite)
-
-Abra um **novo terminal** (sem fechar o terminal do backend) e execute:
+Na raiz do projeto:
 
 ```bash
-# 1. Entrar na pasta do frontend
-cd frontend
-
-# 2. Instalar as dependências do React
-npm install
-
-# 3. Iniciar o servidor de desenvolvimento do React
-npm run dev
+docker compose up --build
 ```
 
-> 🔵 O Front-end estará disponível no seu navegador em: `http://localhost:5173`
+Na primeira execução, o Docker instala as dependências, constrói as imagens e inicia os serviços. O backend executa `prisma migrate deploy` antes de iniciar a API, aplicando migrations pendentes ao SQLite.
+
+### 3. Acessar os serviços
+
+| Serviço | Endereço local |
+| --- | --- |
+| Frontend | http://localhost:5173 |
+| Backend / verificação básica do banco | http://localhost:3001 |
+| Documentação Swagger da API | http://localhost:3001/api-docs |
+
+Essas portas são as definidas no `docker-compose.yml` e precisam estar disponíveis no computador. Os endereços `localhost` pressupõem acesso pelo mesmo computador que executa os containers.
+
+### 4. Verificar a execução
+
+Em outro terminal, na raiz do projeto:
+
+```bash
+docker compose ps
+curl http://localhost:3001
+curl -I http://localhost:5173
+docker compose exec backend npx prisma migrate status
+```
+
+Espera-se encontrar os serviços em execução, resposta da API, resposta HTTP do frontend e migrations atualizadas.
+
+## Comandos úteis
+
+Todos devem ser executados na raiz do repositório.
+
+| Comando | Finalidade |
+| --- | --- |
+| `docker compose up --build` | Construir e iniciar os serviços |
+| `docker compose up -d --build` | Iniciar em segundo plano |
+| `docker compose ps` | Consultar o estado dos serviços |
+| `docker compose logs -f backend` | Acompanhar logs do backend |
+| `docker compose logs -f frontend` | Acompanhar logs do frontend |
+| `docker compose down` | Parar e remover containers e rede do projeto |
+| `docker compose exec backend npx prisma migrate status` | Verificar o histórico de migrations |
+
+**Cuidado:** não utilize comandos de remoção de volumes ou exclusão do banco de dados sem entender suas consequências. Eles podem causar perda de dados.
+
+## Banco de dados e arquivos enviados
+
+O backend utiliza **Prisma com SQLite**. A variável `DATABASE_URL` é definida no Compose como `file:./dev.db`, com o arquivo do banco localizado no diretório `backend/prisma/` na configuração atual.
+
+O Compose utiliza bind mounts (`./backend:/app` e `./frontend:/app`), adequados ao fluxo de desenvolvimento. Assim, as alterações do código local ficam disponíveis nos containers e o banco SQLite e os arquivos em `backend/uploads/` permanecem no computador após `docker compose down`.
+
+- As migrations versionadas ficam em `backend/prisma/migrations/`.
+- O backend aplica migrations existentes automaticamente na inicialização (`prisma migrate deploy`).
+- Arquivos de banco (`*.db`) e novos uploads devem permanecer fora do controle de versão.
+- Migrations novas devem ser adicionadas ao Git para que outros ambientes recebam a mesma estrutura.
+
+> **Atenção ao atualizar bancos existentes:** a migration `add_email_doador` adiciona uma coluna obrigatória sem valor padrão. Ela foi validada em um banco limpo, mas pode exigir uma estratégia de migração de dados antes de ser aplicada a um banco que já contenha doadores. Não redefina um banco com dados importantes sem backup.
+
+## API
+
+A API Express disponibiliza, entre outras, as rotas abaixo:
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| `GET` | `/` | Verifica a API e consulta equipamentos no SQLite |
+| `POST` | `/doadores` | Cadastra ou retorna um doador existente pelo e-mail |
+| `GET` | `/doadores` | Lista doadores (requer autenticação administrativa) |
+| `POST` | `/equipamentos` | Cadastra equipamento; aceita foto via `multipart/form-data` |
+| `GET` | `/equipamentos` | Lista equipamentos (requer autenticação administrativa) |
+| `PUT` | `/equipamentos/:id` | Atualiza um equipamento (requer autenticação administrativa) |
+| `DELETE` | `/equipamentos/:id` | Exclui um equipamento (requer autenticação administrativa) |
+| `POST` | `/admins` | Cadastra administrador |
+| `POST` | `/login` | Autentica administrador e retorna token |
+| `GET` | `/dashboard` | Retorna indicadores (requer autenticação administrativa) |
+
+A documentação Swagger está disponível em `/api-docs`. Consulte o código das rotas para detalhes de campos, autenticação e respostas; parte da documentação da API ainda pode precisar de atualização.
+
+## Situação do desenvolvimento
+
+O projeto **não deve ser considerado pronto para produção** com a configuração atual. Entre os pontos que ainda precisam de revisão estão:
+
+- Integração de telas do frontend com endpoints ainda não implementados ou não alinhados ao backend.
+- Segurança e gestão de segredos da autenticação administrativa.
+- Estratégia de migrations para bancos com dados existentes.
+- Configuração de produção, persistência e backup fora dos bind mounts de desenvolvimento.
+- Ampliação dos testes automatizados e dos checks de integração contínua.
+
+## Integração contínua
+
+O repositório contém workflows em `.github/workflows/` para verificações separadas de frontend e backend, acionados em pushes e pull requests direcionados às branches `main` ou `master`.
+
+O workflow do frontend executa o build do Vite. O workflow do backend instala dependências, gera o Prisma Client e executa `npm test`; atualmente, o script de teste do backend é um placeholder, não uma suíte de testes funcionais.
+
+## Contribuindo
+
+1. Atualize sua branch a partir da base de trabalho acordada pela equipe.
+2. Crie uma branch com nome descritivo, como `feat/nova-funcionalidade`, `fix/correcao` ou `docs/documentacao`.
+3. Faça mudanças pequenas e verificáveis; execute as verificações relevantes antes de enviar.
+4. Registre as alterações com commits semânticos.
+5. Envie a branch ao GitHub e abra um Pull Request para revisão antes de integrar à `main`.
+
+### Padrão de commits
+
+| Tipo | Quando usar | Exemplo |
+| --- | --- | --- |
+| `feat` | Nova funcionalidade | `feat(frontend): adiciona pagina de consulta` |
+| `fix` | Correção de comportamento | `fix(backend): corrige validacao de doador` |
+| `docs` | Documentação | `docs: atualiza README do projeto` |
+| `chore` | Configurações e manutenção | `chore: adiciona dockerignore` |
+| `refactor` | Reorganização sem alterar comportamento | `refactor(backend): organiza rotas` |
+| `style` | Ajustes de apresentação/formatação | `style(frontend): ajusta espacamentos` |
+| `test` | Testes | `test(backend): adiciona testes de cadastro` |
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
-
-### **Front-end**
-* **React:** Biblioteca para construção de interfaces.
-* **Vite:** Ferramenta de build rápida para o desenvolvimento front-end.
-* **Axios:** Cliente HTTP para comunicação com a API back-end.
-* **ESLint:** Padronização e verificação de qualidade de código.
-
-### **Back-end**
-* **Node.js:** Ambiente de execução JavaScript no servidor.
-* **Express:** Framework web para criação de rotas e APIs.
-* **CORS:** Middleware para permitir requisições entre o front-end e back-end.
-* **Dotenv:** Gerenciamento de variáveis de ambiente.
-* **Nodemon:** Reinicialização automática do servidor durante o desenvolvimento.
-
----
-
-## 📝 Padronização de Commits (Commits Semânticos)
-
-Para manter o histórico do Git limpo e organizado, seguimos o padrão de **Commits Semânticos**:
-
-| Tipo | Uso | Exemplo |
-| :--- | :--- | :--- |
-| `feat` | Nova funcionalidade no sistema | `feat(frontend): adiciona tela de login` |
-| `fix` | Correção de um erro/bug | `fix(backend): corrige erro na rota de usuarios` |
-| `chore` | Alteração de configurações ou instalação de bibliotecas | `chore: instala biblioteca axios no frontend` |
-| `docs` | Alterações na documentação | `docs: atualiza instruções no README.md` |
-| `style` | Formatação de código ou ajustes visuais (CSS) | `style(frontend): ajusta margens do botao` |
-| `refactor` | Reestruturação de código sem alterar o comportamento final | `refactor(backend): reorganiza estrutura de rotas` |
-
----
-
-## 👥 Contribuição
-
-1. Crie uma branch para sua funcionalidade: `git checkout -b feat/nome-da-feature`
-2. Faça os commits das suas alterações no padrão semântico: `git commit -m "feat: minha nova feature"`
-3. Envie para o repositório remoto: `git push origin feat/nome-da-feature`
-4. Abra um **Pull Request**.
+**E-Ciclo** — tecnologia e responsabilidade ambiental para um descarte mais consciente.
