@@ -1,31 +1,43 @@
+
 name: Frontend CI
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
+
   pull_request:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
 
 jobs:
   build-and-test:
+    name: Validar Frontend
     runs-on: ubuntu-latest
 
-    # Isso avisa o GitHub para rodar tudo dentro da pasta frontend
     defaults:
       run:
         working-directory: ./frontend
 
     steps:
-    - name: Baixar o código do repositório
-      uses: actions/checkout@v4
+      # Baixa os arquivos do repositório
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
 
-    - name: Configurar o Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22' 
+      # Configura o Node.js e o cache do npm
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "frontend/package-lock.json"
 
-    - name: Instalar dependências
-      run: npm install
+      # Instala as dependências conforme o lockfile
+      - name: Instalar dependências
+        run: npm ci
 
-    - name: Testar o Build do Vite
-      run: npm run build
+      # Verifica problemas no código
+      #- name: Executar ESLint
+       # run: npm run lint
+
+      # Verifica se o frontend compila
+      - name: Build do frontend
+        run: npm run build
