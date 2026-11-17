@@ -15,7 +15,24 @@ CREATE TABLE "new_doadores" (
     "bairro" TEXT NOT NULL,
     "criado_em" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-INSERT INTO "new_doadores" ("bairro", "criado_em", "id", "nome", "whatsapp") SELECT "bairro", "criado_em", "id", "nome", "whatsapp" FROM "doadores";
+
+INSERT INTO "new_doadores" (
+    "id",
+    "nome",
+    "email",
+    "whatsapp",
+    "bairro",
+    "criado_em"
+)
+SELECT
+    "id",
+    "nome",
+    'legacy-' || "id" || '@example.invalid',
+    "whatsapp",
+    "bairro",
+    "criado_em"
+FROM "doadores";
+
 DROP TABLE "doadores";
 ALTER TABLE "new_doadores" RENAME TO "doadores";
 CREATE UNIQUE INDEX "doadores_email_key" ON "doadores"("email");
