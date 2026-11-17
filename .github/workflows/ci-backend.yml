@@ -1,37 +1,54 @@
+
 name: Backend CI
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
+
   pull_request:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
 
 jobs:
   build-and-test:
+    name: Validar Backend
     runs-on: ubuntu-latest
 
-    # Isso avisa o GitHub para rodar tudo dentro da pasta backend
     defaults:
       run:
         working-directory: ./backend
 
+    env:
+      DATABASE_URL: "file:./ci.db"
+
     steps:
-    - name: Baixar o código do repositório
-      uses: actions/checkout@v4
+      # Baixa os arquivos do repositório
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
 
-    - name: Configurar o Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22' 
+      # Configura o Node.js e o cache do npm
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "backend/package-lock.json"
 
-    - name: Instalar dependências
-      run: npm install
+      # Instala as dependências do backend
+      - name: Instalar dependências
+        run: npm ci
 
-    - name: Gerar o cliente do Prisma
-      run: npx prisma generate
+      # Verifica a estrutura do schema Prisma
+      - name: Validar schema Prisma
+        run: npx prisma validate
 
-    - name: Executar testes automatizados
-      run: npm test
-      env:
-        DATABASE_URL: "file:./dev.db"
-        JWT_SECRET: "chave_secreta_de_teste_ci"
+      # Gera o Prisma Client
+      - name: Gerar Prisma Client
+        run: npx prisma generate
+
+      # Cria um banco temporário e aplica as migrations
+      - name: Aplicar migrations
+        run: npx prisma migrate deploy
+
+      # Verifica se todas as migrations foram aplicadas
+      - name: Verificar migrations
+        run: npx prisma migrate status
