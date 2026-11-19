@@ -14,26 +14,24 @@ export default function Login() {
 
   const modoClaro = tema === 'claro'
 
-  useEffect(() => {
-    const atualizarTema = (evento) => {
-      const novoTema =
-        evento.detail ||
-        (localStorage.getItem('eciclo-tema') === 'claro' ? 'claro' : 'escuro')
+  
+useEffect(() => {
+  const atualizarTema = (evento) => {
+    const novoTema =
+      evento.detail ||
+      (localStorage.getItem('eciclo-tema') === 'claro'
+        ? 'claro'
+        : 'escuro')
 
-      setTema(novoTema)
-    }
+    setTema(novoTema)
+  }
 
-    const temaSalvo =
-      localStorage.getItem('eciclo-tema') === 'claro' ? 'claro' : 'escuro'
+  window.addEventListener('eciclo-tema-alterado', atualizarTema)
 
-    setTema(temaSalvo)
-
-    window.addEventListener('eciclo-tema-alterado', atualizarTema)
-
-    return () => {
-      window.removeEventListener('eciclo-tema-alterado', atualizarTema)
-    }
-  }, [])
+  return () => {
+    window.removeEventListener('eciclo-tema-alterado', atualizarTema)
+  }
+}, [])
 
   const handleLogin = (e) => {
     e.preventDefault()

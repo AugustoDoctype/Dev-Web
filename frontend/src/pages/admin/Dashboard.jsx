@@ -108,11 +108,6 @@ export default function DashboardAdmin() {
       setTema(novoTema)
     }
 
-    setTema(
-      localStorage.getItem('eciclo-tema') === 'claro'
-        ? 'claro'
-        : 'escuro'
-    )
 
     window.addEventListener(
       'eciclo-tema-alterado',

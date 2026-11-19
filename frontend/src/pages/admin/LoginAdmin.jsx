@@ -32,13 +32,6 @@ export default function LoginAdmin() {
       setTema(novoTema)
     }
 
-    const temaSalvo =
-      localStorage.getItem('eciclo-tema') === 'claro'
-        ? 'claro'
-        : 'escuro'
-
-    setTema(temaSalvo)
-
     window.addEventListener(
       'eciclo-tema-alterado',
       atualizarTema
@@ -67,14 +60,16 @@ export default function LoginAdmin() {
         })
       } catch (err) {
         // Login local de demonstração.
-        if (
-          email === 'admin@eciclo.com' &&
-          senha === 'admin123'
-        ) {
-          data = { token: 'mock-token-admin-123' }
-        } else {
-          throw new Error(
-            'E-mail ou senha incorretos. Verifique seus dados e tente novamente.'
+          if (
+      email === 'admin@eciclo.com' &&
+      senha === 'admin123'
+    ) {
+     data = { token: 'mock-token-admin-123' }
+    } else {
+    throw new Error(
+      'E-mail ou senha incorretos. Verifique seus dados e tente novamente.',
+      { cause: err }
+
           )
         }
       }

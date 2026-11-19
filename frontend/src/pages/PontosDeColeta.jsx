@@ -250,8 +250,6 @@ export default function PontosDeColeta() {
       setTema(novoTema)
     }
 
-    // Confere novamente a preferência ao montar a página.
-    setTema(lerTema())
 
     window.addEventListener(
       'eciclo-tema-alterado',
@@ -342,16 +340,15 @@ export default function PontosDeColeta() {
     })
   }, [pontos, categoriaSelecionada, busca])
 
-  useEffect(() => {
-    if (
-      pontoSelecionado &&
-      !pontosFiltrados.some(
-        (ponto) => ponto.id === pontoSelecionado.id
-      )
-    ) {
-      setPontoSelecionado(null)
-    }
-  }, [pontosFiltrados, pontoSelecionado])
+  
+const pontoSelecionadoVisivel =
+  pontoSelecionado &&
+  pontosFiltrados.some(
+    (ponto) => ponto.id === pontoSelecionado.id
+  )
+    ? pontoSelecionado
+    : null
+
 
   function selecionarPonto(ponto) {
     setPontoSelecionado(ponto)
@@ -361,8 +358,8 @@ export default function PontosDeColeta() {
     pontos.map((ponto) => ponto.categoria)
   ).size
 
-  const centroMapa = pontoSelecionado
-    ? pontoSelecionado.posicao
+  const centroMapa = pontoSelecionadoVisivel
+    ? pontoSelecionadoVisivel.posicao
     : [-3.119, -60.0217]
 
   return (
@@ -868,7 +865,7 @@ export default function PontosDeColeta() {
                     </CircleMarker>
                   ))}
 
-                  <CentralizarMapa ponto={pontoSelecionado} />
+                  <CentralizarMapa ponto={pontoSelecionadoVisivel} />
                 </MapContainer>
 
                 {pontosFiltrados.length === 0 && (
