@@ -1,7 +1,13 @@
 node_modules
 # Keep environment variables out of version control
 .env
+.env.test
 
 /src/generated/prisma
 
 /src/generated/prisma
+
+prisma/test.db
+prisma/test.db-journal
+prisma/test.db-shm
+prisma/test.db-wal
