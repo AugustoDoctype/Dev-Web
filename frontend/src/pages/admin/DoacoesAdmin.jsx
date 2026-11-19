@@ -4,7 +4,21 @@ import { Link, useNavigate } from 'react-router-dom'
 function Doacoes() {
   const navigate = useNavigate()
 
-  const [doacoes, setDoacoes] = useState([])
+  
+const [doacoes, setDoacoes] = useState(() => {
+  try {
+    const doacoesSalvas = JSON.parse(
+      localStorage.getItem('doacoes') || '[]'
+    )
+
+    return Array.isArray(doacoesSalvas)
+      ? doacoesSalvas
+      : []
+  } catch {
+    return []
+  }
+})
+
   const [filtroStatus, setFiltroStatus] = useState('Todos')
   const [busca, setBusca] = useState('')
 
@@ -17,10 +31,6 @@ function Doacoes() {
   const modoClaro = tema === 'claro'
 
   useEffect(() => {
-    carregarDoacoes()
-  }, [])
-
-  useEffect(() => {
     function atualizarTema(evento) {
       const novoTema =
         evento.detail ||
@@ -30,13 +40,6 @@ function Doacoes() {
 
       setTema(novoTema)
     }
-
-    const temaSalvo =
-      localStorage.getItem('eciclo-tema') === 'claro'
-        ? 'claro'
-        : 'escuro'
-
-    setTema(temaSalvo)
 
     window.addEventListener(
       'eciclo-tema-alterado',
@@ -70,20 +73,6 @@ function Doacoes() {
         detail: novoTema,
       })
     )
-  }
-
-  function carregarDoacoes() {
-    try {
-      const doacoesSalvas = JSON.parse(
-        localStorage.getItem('doacoes') || '[]'
-      )
-
-      setDoacoes(
-        Array.isArray(doacoesSalvas) ? doacoesSalvas : []
-      )
-    } catch {
-      setDoacoes([])
-    }
   }
 
   function atualizarStatus(id, novoStatus) {

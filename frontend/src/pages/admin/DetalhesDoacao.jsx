@@ -1,23 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 function DoacaoDetalhes() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const [doacao, setDoacao] = useState(null)
+  
+const [doacao, setDoacao] = useState(() => {
+  const doacoesSalvas = JSON.parse(
+    localStorage.getItem('doacoes') || '[]'
+  )
 
-  useEffect(() => {
-    const doacoesSalvas = JSON.parse(
-      localStorage.getItem('doacoes') || '[]'
-    )
-
-    const doacaoEncontrada = doacoesSalvas.find(
-      (item) => String(item.id) === String(id)
-    )
-
-    setDoacao(doacaoEncontrada)
-  }, [id])
+  return doacoesSalvas.find(
+    (item) => String(item.id) === String(id)
+  ) ?? null
+})
 
   function atualizarStatus(novoStatus) {
     const doacoesSalvas = JSON.parse(
@@ -328,4 +325,9 @@ function DoacaoDetalhes() {
   )
 }
 
-export default DoacaoDetalhes
+
+export default function PaginaDetalhesDoacao() {
+  const { id } = useParams()
+
+  return <DoacaoDetalhes key={id} />
+}

@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/public/Navbar'
 
 export default function DetalhesMinhaDoacao() {
   const { id } = useParams()
-  const [doacao, setDoacao] = useState(null)
 
-  useEffect(() => {
-    const doacoes = JSON.parse(localStorage.getItem('mock_doacoes') || '[]')
-    const itemEncontrado = doacoes.find((item) => item.id === id)
-    setDoacao(itemEncontrado)
-  }, [id])
+  const doacoes = JSON.parse(
+    localStorage.getItem('mock_doacoes') || '[]'
+  )
+
+  const doacao = doacoes.find(
+    (item) => String(item.id) === String(id)
+  )
+
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">

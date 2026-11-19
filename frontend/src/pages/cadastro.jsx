@@ -20,25 +20,25 @@ export default function Cadastro() {
 
   const modoClaro = tema === 'claro'
 
-  useEffect(() => {
-    const atualizarTema = (evento) => {
-      const novoTema =
-        evento.detail ||
-        (localStorage.getItem('eciclo-tema') === 'claro' ? 'claro' : 'escuro')
+  
+useEffect(() => {
+  const atualizarTema = (evento) => {
+    const novoTema =
+      evento.detail ||
+      (localStorage.getItem('eciclo-tema') === 'claro'
+        ? 'claro'
+        : 'escuro')
 
-      setTema(novoTema)
-    }
+    setTema(novoTema)
+  }
 
-    setTema(
-      localStorage.getItem('eciclo-tema') === 'claro' ? 'claro' : 'escuro'
-    )
+  window.addEventListener('eciclo-tema-alterado', atualizarTema)
 
-    window.addEventListener('eciclo-tema-alterado', atualizarTema)
+  return () => {
+    window.removeEventListener('eciclo-tema-alterado', atualizarTema)
+  }
+}, [])
 
-    return () => {
-      window.removeEventListener('eciclo-tema-alterado', atualizarTema)
-    }
-  }, [])
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })

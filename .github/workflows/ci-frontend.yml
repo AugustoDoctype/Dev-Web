@@ -35,8 +35,8 @@ jobs:
         run: npm ci
 
       # Verifica problemas no código
-      #- name: Executar ESLint
-       # run: npm run lint
+      - name: Executar ESLint
+        run: npm run lint
 
       # Verifica se o frontend compila
       - name: Build do frontend
