@@ -37,6 +37,9 @@ model Equipamento {
   fotoUrl      String?  @map("foto_url")
   status       String   @default("PENDENTE")
   destinoFinal String?  @map("destino_final")
+    // Código exclusivo para acompanhar a doação
+  codigoAcompanhamento String?  @unique @map("codigo_acompanhamento")
+
   criadoEm     DateTime @default(now()) @map("criado_em")
   atualizadoEm DateTime @updatedAt @map("atualizado_em")
 

@@ -1,75 +1,135 @@
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/public/Navbar'
+import { apiFetch } from '../services/api'
+
+// ==========================================
+// STATUS DO EQUIPAMENTO
+// ==========================================
+
+const nomesStatus = {
+  PENDENTE: 'Pendente',
+  EM_ANALISE: 'Em análise',
+  AGUARDANDO_COLETA: 'Aguardando coleta',
+  CONCLUIDO: 'Concluído',
+  CANCELADO: 'Cancelado',
+}
+
+// ==========================================
+// PÁGINA DE DETALHES
+// ==========================================
 
 export default function DetalhesMinhaDoacao() {
   const { id } = useParams()
 
-  const doacoes = JSON.parse(
-    localStorage.getItem('mock_doacoes') || '[]'
-  )
+  const [doacao, setDoacao] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [erro, setErro] = useState('')
 
-  const doacao = doacoes.find(
-    (item) => String(item.id) === String(id)
-  )
+  // Busca o equipamento sempre que o código mudar.
+  useEffect(() => {
+    let ativo = true
 
+    async function carregarDoacao() {
+      try {
+        const resposta = await apiFetch(
+          `/acompanhamento/${encodeURIComponent(id)}`
+        )
+
+        if (ativo) {
+          setDoacao(resposta.dados)
+          setErro('')
+        }
+      } catch (error) {
+        if (ativo) {
+          setErro(error.message || 'Doação não encontrada.')
+          setDoacao(null)
+        }
+      } finally {
+        if (ativo) setLoading(false)
+      }
+    }
+
+    carregarDoacao()
+
+    return () => {
+      ativo = false
+    }
+  }, [id])
+
+  // ==========================================
+  // INTERFACE
+  // ==========================================
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
 
-      <main className="flex-1 max-w-2xl mx-auto px-4 py-12 w-full">
-        {!doacao ? (
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center">
-            <h2 className="text-lg font-bold text-slate-800">Doação não encontrada</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              O código informado não corresponde a nenhum registro local.
+      <main className="mx-auto max-w-2xl px-4 py-12">
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h1 className="text-2xl font-extrabold">
+            Acompanhamento da doação
+          </h1>
+
+          {loading && (
+            <p className="mt-6 text-slate-600">
+              Consultando equipamento...
             </p>
-            <Link
-              to="/minhas-doacoes"
-              className="mt-6 inline-block text-emerald-600 font-semibold text-sm hover:underline"
-            >
-              ← Voltar para Minhas Doações
-            </Link>
-          </div>
-        ) : (
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
-              <div>
-                <span className="text-xs font-mono font-bold text-slate-400">CÓDIGO DA DOAÇÃO</span>
-                <h1 className="text-2xl font-black text-slate-900 font-mono">{doacao.id}</h1>
-              </div>
-              <span className="px-3 py-1 bg-amber-50 text-amber-700 font-semibold text-xs rounded-full border border-amber-200">
-                {doacao.status}
-              </span>
-            </div>
+          )}
 
-            <div className="space-y-4 text-sm text-slate-700">
-              <div>
-                <strong className="block text-slate-900">Equipamento:</strong>
-                <span>{doacao.equipamento}</span>
-              </div>
-              <div>
-                <strong className="block text-slate-900">Doador:</strong>
-                <span>{doacao.nomeDoador}</span>
-              </div>
-              <div>
-                <strong className="block text-slate-900">Endereço de Coleta:</strong>
-                <span>
-                  {doacao.rua}, {doacao.numero} - {doacao.bairro} ({doacao.cidade}/{doacao.estado})
-                </span>
-              </div>
-            </div>
+          {!loading && erro && (
+            <p role="alert" className="mt-6 text-red-600">
+              {erro}
+            </p>
+          )}
 
-            <div className="mt-8 pt-4 border-t border-slate-100 flex justify-between items-center">
-              <Link
-                to="/minhas-doacoes"
-                className="text-emerald-600 font-semibold text-xs hover:underline"
-              >
-                ← Voltar
-              </Link>
+          {!loading && doacao && (
+            <div className="mt-8 space-y-5">
+              <div>
+                <p className="text-sm text-slate-500">
+                  Categoria
+                </p>
+                <p className="font-bold">
+                  {doacao.categoria}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500">
+                  Status atual
+                </p>
+                <p className="font-bold text-emerald-700">
+                  {nomesStatus[doacao.status] || doacao.status}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500">
+                  Data do cadastro
+                </p>
+                <p>
+                  {new Date(doacao.criadoEm).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500">
+                  Última atualização
+                </p>
+                <p>
+                  {new Date(doacao.atualizadoEm).toLocaleString('pt-BR')}
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          <Link
+            to="/minhas-doacoes"
+            className="mt-8 inline-block font-semibold text-emerald-700 hover:underline"
+          >
+            ← Voltar para consulta
+          </Link>
+        </div>
       </main>
     </div>
   )
