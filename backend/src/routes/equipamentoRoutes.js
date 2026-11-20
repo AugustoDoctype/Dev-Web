@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { z } from 'zod';
 import { criarEquipamentoSchema } from '../schemas/equipamentoSchema.js';
 import { Router } from 'express';
@@ -65,7 +66,9 @@ router.post('/', upload.single('foto'), async (req, res) => {
         categoria,
         descricao,
         fotoUrl,
-        status: status || "PENDENTE"
+        status: status || "PENDENTE",
+
+        codigoAcompanhamento: randomBytes(16).toString('hex').toUpperCase(),
       }
     });
 

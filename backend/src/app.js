@@ -8,6 +8,7 @@ import dashboardRoutes from './routes/dashboardRoutes.js'
 import doadorRoutes from './routes/doadorRoutes.js'
 import equipamentoRoutes from './routes/equipamentoRoutes.js'
 import authRoutes from './routes/authRoutes.js'
+import acompanhamentoRoutes from './routes/acompanhamentoRoutes.js'
 
 const app = express()
 
@@ -20,26 +21,29 @@ app.use('/uploads', express.static('uploads'))
 
 app.get('/', async (req, res) => {
   try {
-    const equipamentos = await prisma.equipamento.findMany()
+    // Confirma que o banco está acessível,
+    // mas não expõe os registros.
+    await prisma.equipamento.count()
 
-    return res.json({
+    return res.status(200).json({
       sucesso: true,
-      mensagem: 'API rodando e conectada ao banco com sucesso! 🚀',
-      totalEquipamentos: equipamentos.length,
-      dados: equipamentos
+      mensagem: 'API E-Ciclo online e conectada ao banco.',
     })
-  } catch (erro) {
+  } catch (error) {
+    console.error('Erro na verificação da API:', error)
+
     return res.status(500).json({
       sucesso: false,
-      mensagem: 'Erro ao conectar no banco de dados',
-      erro: erro.message
+      mensagem: 'API indisponível.',
     })
   }
 })
+
 
 app.use('/', authRoutes)
 app.use('/doadores', doadorRoutes)
 app.use('/equipamentos', equipamentoRoutes)
 app.use('/dashboard', dashboardRoutes)
+app.use('/acompanhamento', acompanhamentoRoutes)
 
 export default app

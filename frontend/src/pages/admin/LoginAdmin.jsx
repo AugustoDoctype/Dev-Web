@@ -45,54 +45,46 @@ export default function LoginAdmin() {
     }
   }, [])
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
-    setErro('')
-    setLoading(true)
+  
+const handleLogin = async (e) => {
+  e.preventDefault()
+  setErro('')
+  setLoading(true)
 
-    try {
-      let data
+  try {
+    const data = await apiFetch('/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        senha,
+      }),
+    })
 
-      try {
-        data = await apiFetch('/admin/login', {
-          method: 'POST',
-          body: JSON.stringify({ email, senha }),
-        })
-      } catch (err) {
-        // Login local de demonstração.
-          if (
-      email === 'admin@eciclo.com' &&
-      senha === 'admin123'
-    ) {
-     data = { token: 'mock-token-admin-123' }
-    } else {
-    throw new Error(
-      'E-mail ou senha incorretos. Verifique seus dados e tente novamente.',
-      { cause: err }
-
-          )
-        }
-      }
-
-      localStorage.setItem('adminToken', data.token)
-
-      localStorage.setItem(
-        'userPerfil',
-        JSON.stringify({
-          nome: 'Administrador',
-          tipo: 'ADMIN',
-        })
+    if (!data?.token) {
+      throw new Error(
+        'O servidor não retornou um token de autenticação.'
       )
-
-      navigate('/admin/dashboard')
-    } catch (err) {
-      setErro(
-        err.message || 'Não foi possível entrar. Tente novamente.'
-      )
-    } finally {
-      setLoading(false)
     }
+
+    localStorage.setItem('adminToken', data.token)
+
+    localStorage.setItem(
+      'userPerfil',
+      JSON.stringify({
+        nome: 'Administrador',
+        tipo: 'ADMIN',
+      })
+    )
+
+    navigate('/admin/dashboard')
+  } catch (error) {
+    setErro(
+      error.message || 'Não foi possível realizar o login.'
+    )
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div

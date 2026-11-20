@@ -22,16 +22,24 @@ export default function Confirmacao() {
             Obrigado por colaborar com o descarte consciente no E-Ciclo.
           </p>
 
-          {doacao && (
-            <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-left space-y-2 text-sm text-slate-700">
-              <p><strong>Item:</strong> {doacao.equipamento}</p>
-              <p><strong>Doador:</strong> {doacao.nomeDoador}</p>
-              <p><strong>Status Inicial:</strong> <span className="inline-block px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-medium text-xs">Pendente</span></p>
-              {doacao.id && (
-                <p><strong>Código da Doação:</strong> <span className="font-mono bg-slate-200 px-2 py-0.5 rounded text-slate-900 font-bold">{doacao.id}</span></p>
-              )}
+          
+          {doacao?.codigoAcompanhamento && (
+            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <p className="text-sm font-semibold text-emerald-800">
+                Seu código de acompanhamento
+              </p>
+
+              <p className="mt-2 break-all font-mono text-base font-bold text-slate-900">
+                {doacao.codigoAcompanhamento}
+              </p>
+
+              <p className="mt-2 text-xs text-slate-600">
+                Guarde este código. Ele será necessário para
+                consultar o andamento da sua doação.
+              </p>
             </div>
           )}
+
 
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link

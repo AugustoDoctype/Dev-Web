@@ -1,333 +1,83 @@
-import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import AdminLayout from '../../components/admin/AdminLayout'
+import StatusBadge from '../../components/admin/StatusBadge'
+import { useDoacoesAdmin } from '../../hooks/useDoacoesAdmin'
+import { formatarData, obterNomeEquipamento, STATUS_OPCOES } from '../../services/adminDoacoes'
 
-function DoacaoDetalhes() {
+// ============================================================
+// DETALHES DA DOAÇÃO
+// A API atual não oferece GET /equipamentos/:id.
+// Por isso consultamos a lista autorizada e buscamos o ID da URL.
+// O status é gravado no SQLite por PUT /equipamentos/:id.
+// ============================================================
+export default function DetalhesDoacao() {
   const { id } = useParams()
-  const navigate = useNavigate()
-
-  
-const [doacao, setDoacao] = useState(() => {
-  const doacoesSalvas = JSON.parse(
-    localStorage.getItem('doacoes') || '[]'
-  )
-
-  return doacoesSalvas.find(
-    (item) => String(item.id) === String(id)
-  ) ?? null
-})
-
-  function atualizarStatus(novoStatus) {
-    const doacoesSalvas = JSON.parse(
-      localStorage.getItem('doacoes') || '[]'
-    )
-
-    const doacoesAtualizadas = doacoesSalvas.map((item) =>
-      String(item.id) === String(id)
-        ? { ...item, status: novoStatus }
-        : item
-    )
-
-    localStorage.setItem(
-      'doacoes',
-      JSON.stringify(doacoesAtualizadas)
-    )
-
-    const doacaoAtualizada = doacoesAtualizadas.find(
-      (item) => String(item.id) === String(id)
-    )
-
-    setDoacao(doacaoAtualizada)
-  }
-
-  if (!doacao) {
-    return (
-      <div className="min-h-screen bg-gray-100">
-
-        <header className="bg-green-700 text-white">
-
-          <div className="max-w-7xl mx-auto px-6 py-5">
-
-            <h1 className="text-2xl font-bold">
-              E-Ciclo
-            </h1>
-
-            <p className="text-green-100 text-sm">
-              Painel Administrativo
-            </p>
-
-          </div>
-
-        </header>
-
-        <main className="max-w-3xl mx-auto px-6 py-16">
-
-          <div className="bg-white rounded-2xl shadow-sm p-10 text-center">
-
-            <div className="text-5xl mb-4">
-              🔍
-            </div>
-
-            <h2 className="text-2xl font-bold text-gray-800 mb-3">
-              Doação não encontrada
-            </h2>
-
-            <p className="text-gray-600 mb-6">
-              Não foi possível encontrar a doação solicitada.
-            </p>
-
-            <Link
-              to="/admin/doacoes"
-              className="inline-block bg-green-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-800 transition"
-            >
-              Voltar para doações
-            </Link>
-
-          </div>
-
-        </main>
-
-      </div>
-    )
-  }
+  const { doacoes, carregando, erro, atualizandoId, recarregar, alterarStatus } = useDoacoesAdmin()
+  const equipamento = doacoes.find((item) => String(item.id) === String(id))
 
   return (
-    <div className="min-h-screen bg-gray-100">
-
-      {/* Cabeçalho */}
-
-      <header className="bg-green-700 text-white">
-
-        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-
-          <div>
-
-            <h1 className="text-2xl font-bold">
-              E-Ciclo
-            </h1>
-
-            <p className="text-green-100 text-sm">
-              Painel Administrativo
-            </p>
-
+    <AdminLayout titulo="Detalhes da doação" descricao="Consulte os dados realmente registrados e atualize a situação do equipamento.">
+      {({ claro, painel, secundario }) => (
+        <>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <Link to="/admin/doacoes" className="text-sm font-bold text-emerald-500 hover:underline">← Voltar às doações</Link>
+            <button type="button" onClick={recarregar} disabled={carregando} className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-bold text-[#07120b] disabled:opacity-50">↻ Atualizar</button>
           </div>
 
-          <Link
-            to="/admin/doacoes"
-            className="bg-white text-green-700 px-4 py-2 rounded-lg font-semibold hover:bg-green-50 transition"
-          >
-            Voltar para doações
-          </Link>
+          {/* 1. Estado de carregamento / falha */}
+          {erro && <div role="alert" className="mb-6 rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-500">{erro}</div>}
+          {carregando ? (
+            <p role="status" className={`rounded-2xl border p-8 ${painel}`}>Carregando detalhes...</p>
+          ) : !equipamento ? (
+            <section className={`rounded-2xl border p-8 text-center ${painel}`}>
+              <h2 className="text-xl font-extrabold">Equipamento não encontrado</h2>
+              <p className={`mt-3 text-sm ${secundario}`}>Esse identificador não consta na lista retornada pela API.</p>
+              <Link className="mt-5 inline-block text-sm font-bold text-emerald-500" to="/admin/doacoes">Voltar para a lista</Link>
+            </section>
+          ) : (
+            <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
+              {/* 2. Dados armazenados no Prisma */}
+              <section className={`min-w-0 rounded-2xl border p-6 sm:p-8 ${painel}`}>
+                <h2 className="text-xl font-extrabold">{obterNomeEquipamento(equipamento.descricao)}</h2>
+                <p className={`mt-2 break-all text-xs ${secundario}`}>Código: {equipamento.id}</p>
+                <div className="mt-4"><StatusBadge status={equipamento.status} claro={claro} /></div>
+                <dl className={`mt-8 grid gap-6 text-sm sm:grid-cols-2 ${secundario}`}>
+                  <div><dt className="font-bold text-emerald-500">Categoria</dt><dd className="mt-1">{equipamento.categoria}</dd></div>
+                  <div><dt className="font-bold text-emerald-500">Cadastrado em</dt><dd className="mt-1">{formatarData(equipamento.criadoEm)}</dd></div>
+                  <div><dt className="font-bold text-emerald-500">Atualizado em</dt><dd className="mt-1">{formatarData(equipamento.atualizadoEm)}</dd></div>
+                  <div><dt className="font-bold text-emerald-500">Destino final</dt><dd className="mt-1">{equipamento.destinoFinal || 'Ainda não definido'}</dd></div>
+                  <div className="sm:col-span-2"><dt className="font-bold text-emerald-500">Descrição completa</dt><dd className="mt-1 whitespace-pre-wrap break-words">{equipamento.descricao}</dd></div>
+                  <div className="sm:col-span-2"><dt className="font-bold text-emerald-500">Foto</dt><dd className="mt-1">{equipamento.fotoUrl ? 'Arquivo enviado (URL registrada no banco)' : 'Não enviada'}</dd></div>
+                </dl>
+              </section>
 
-        </div>
-
-      </header>
-
-      {/* Conteúdo */}
-
-      <main className="max-w-4xl mx-auto px-6 py-10">
-
-        <div className="mb-8">
-
-          <h2 className="text-3xl font-bold text-gray-800">
-            Detalhes da doação
-          </h2>
-
-          <p className="text-gray-600 mt-2">
-            Visualize e analise todas as informações do equipamento.
-          </p>
-
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-
-          {/* Cabeçalho das informações */}
-
-          <div className="p-6 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-
-            <div>
-
-              <h3 className="text-xl font-bold text-gray-800">
-                Informações da doação
-              </h3>
-
-              <p className="text-sm text-gray-500 mt-1">
-                ID da doação: {doacao.id}
-              </p>
-
+              {/* 3. Doador e alteração de status */}
+              <aside className="space-y-6">
+                <section className={`rounded-2xl border p-6 ${painel}`}>
+                  <h2 className="text-lg font-extrabold">Dados do doador</h2>
+                  <dl className={`mt-4 space-y-4 text-sm ${secundario}`}>
+                    <div><dt className="font-bold text-emerald-500">Nome</dt><dd className="mt-1">{equipamento.doador?.nome || 'Não localizado'}</dd></div>
+                    <div><dt className="font-bold text-emerald-500">E-mail</dt><dd className="mt-1 break-all">{equipamento.doador?.email || 'Não informado'}</dd></div>
+                    <div><dt className="font-bold text-emerald-500">WhatsApp</dt><dd className="mt-1">{equipamento.doador?.whatsapp || 'Não informado'}</dd></div>
+                    <div><dt className="font-bold text-emerald-500">Bairro</dt><dd className="mt-1">{equipamento.doador?.bairro || 'Não informado'}</dd></div>
+                  </dl>
+                </section>
+                <section className={`rounded-2xl border p-6 ${painel}`}>
+                  <h2 className="text-lg font-extrabold">Atualizar andamento</h2>
+                  <p className={`mt-2 text-xs leading-5 ${secundario}`}>A alteração é gravada no banco. O acompanhamento público ainda necessita de integração adicional.</p>
+                  <label htmlFor="status-detalhe" className={`mt-5 block text-sm font-semibold ${secundario}`}>Novo status</label>
+                  <select id="status-detalhe" value={equipamento.status || 'PENDENTE'} disabled={atualizandoId === equipamento.id}
+                    onChange={(e) => alterarStatus(equipamento.id, e.target.value)}
+                    className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm ${claro ? 'border-slate-300 bg-white' : 'border-white/10 bg-[#0b110e]'}`}>
+                    {STATUS_OPCOES.map(({ valor, nome }) => <option value={valor} key={valor}>{nome}</option>)}
+                  </select>
+                  <p className={`mt-3 text-xs ${secundario}`}>{atualizandoId === equipamento.id ? 'Salvando alteração...' : 'Selecione uma opção para salvar.'}</p>
+                </section>
+              </aside>
             </div>
-
-            <span
-              className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                doacao.status === 'Aprovada'
-                  ? 'bg-green-100 text-green-700'
-                  : doacao.status === 'Rejeitada'
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-yellow-100 text-yellow-700'
-              }`}
-            >
-              {doacao.status}
-            </span>
-
-          </div>
-
-          {/* Informações */}
-
-          <div className="p-6">
-
-            <div className="grid md:grid-cols-2 gap-6">
-
-              {/* Equipamento */}
-
-              <div className="bg-gray-50 rounded-xl p-5">
-
-                <p className="text-sm text-gray-500 mb-1">
-                  Equipamento
-                </p>
-
-                <p className="text-lg font-semibold text-gray-800">
-                  {doacao.equipamento}
-                </p>
-
-              </div>
-
-              {/* Categoria */}
-
-              <div className="bg-gray-50 rounded-xl p-5">
-
-                <p className="text-sm text-gray-500 mb-1">
-                  Categoria
-                </p>
-
-                <p className="text-lg font-semibold text-gray-800">
-                  {doacao.categoria}
-                </p>
-
-              </div>
-
-              {/* Quantidade */}
-
-              <div className="bg-gray-50 rounded-xl p-5">
-
-                <p className="text-sm text-gray-500 mb-1">
-                  Quantidade
-                </p>
-
-                <p className="text-lg font-semibold text-gray-800">
-                  {doacao.quantidade}
-                </p>
-
-              </div>
-
-              {/* Data */}
-
-              <div className="bg-gray-50 rounded-xl p-5">
-
-                <p className="text-sm text-gray-500 mb-1">
-                  Data da doação
-                </p>
-
-                <p className="text-lg font-semibold text-gray-800">
-                  {doacao.data}
-                </p>
-
-              </div>
-
-            </div>
-
-            {/* Observação */}
-
-            <div className="mt-6">
-
-              <p className="text-sm text-gray-500 mb-2">
-                Estado ou observação
-              </p>
-
-              <div className="bg-gray-50 rounded-xl p-5">
-
-                <p className="text-gray-700">
-                  {doacao.observacao ||
-                    'Nenhuma observação informada.'}
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Ações */}
-
-          <div className="border-t bg-gray-50 p-6">
-
-            <h3 className="font-bold text-gray-800 mb-4">
-              Ações administrativas
-            </h3>
-
-            {doacao.status === 'Pendente' ? (
-
-              <div className="flex flex-wrap gap-3">
-
-                <button
-                  onClick={() => atualizarStatus('Aprovada')}
-                  className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                >
-                  ✅ Aprovar doação
-                </button>
-
-                <button
-                  onClick={() => atualizarStatus('Rejeitada')}
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
-                >
-                  ❌ Rejeitar doação
-                </button>
-
-              </div>
-
-            ) : (
-
-              <div>
-
-                <p className="text-gray-600 mb-4">
-                  Esta doação já foi analisada.
-                </p>
-
-                <button
-                  onClick={() => atualizarStatus('Pendente')}
-                  className="px-6 py-3 border border-yellow-500 text-yellow-700 rounded-lg font-semibold hover:bg-yellow-50 transition"
-                >
-                  ↩️ Voltar para pendente
-                </button>
-
-              </div>
-
-            )}
-
-          </div>
-
-        </div>
-
-        {/* Voltar */}
-
-        <div className="mt-6">
-
-          <button
-            onClick={() => navigate('/admin/doacoes')}
-            className="text-green-700 font-semibold hover:underline"
-          >
-            ← Voltar para a lista de doações
-          </button>
-
-        </div>
-
-      </main>
-
-    </div>
+          )}
+        </>
+      )}
+    </AdminLayout>
   )
-}
-
-
-export default function PaginaDetalhesDoacao() {
-  const { id } = useParams()
-
-  return <DoacaoDetalhes key={id} />
 }

@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from 'react'
 import Navbar from '../components/public/Navbar'
 import { apiFetch } from '../services/api'
+import { Link } from 'react-router-dom'
 
 export default function MinhasDoacoes() {
-  const [cpf, setCpf] = useState('')
+  const [codigo, setCodigo] = useState('')
   const [doacoes, setDoacoes] = useState([])
   const [loading, setLoading] = useState(false)
   const [buscou, setBuscou] = useState(false)
@@ -30,46 +30,55 @@ export default function MinhasDoacoes() {
     }
   }, [])
 
-  const aplicarMascaraCPF = (valor) => {
-    return valor
-      .replace(/\D/g, '')
-      .slice(0, 11)
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
-  }
 
-  const handleCpfChange = (e) => {
-    setCpf(aplicarMascaraCPF(e.target.value))
-  }
+async function handleBuscar(event) {
+  event.preventDefault()
 
-  const handleBuscar = async (e) => {
-    e.preventDefault()
+  const codigoNormalizado = codigo.trim().toUpperCase()
 
-    const cpfLimpo = cpf.replace(/\D/g, '')
-
-    if (cpfLimpo.length !== 11) {
-      setErro('Informe um CPF com 11 dígitos.')
-      setBuscou(false)
-      setDoacoes([])
-      return
-    }
-
-    setLoading(true)
-    setErro('')
-    setBuscou(true)
+  if (!/^[0-9A-F]{32}$/.test(codigoNormalizado)) {
+    setErro('Informe um código de acompanhamento válido.')
+    setBuscou(false)
     setDoacoes([])
-
-    try {
-      const dados = await apiFetch(`/doacoes/usuario/${cpfLimpo}`)
-      setDoacoes(Array.isArray(dados) ? dados : [])
-    } catch (err) {
-      setErro(err.message || 'Não foi possível consultar suas doações.')
-      setDoacoes([])
-    } finally {
-      setLoading(false)
-    }
+    return
   }
+
+  setLoading(true)
+  setErro('')
+  setBuscou(true)
+  setDoacoes([])
+
+  try {
+    const resposta = await apiFetch(
+      `/acompanhamento/${encodeURIComponent(codigoNormalizado)}`
+    )
+
+    if (!resposta?.dados) {
+      throw new Error('Não foi possível obter a doação.')
+    }
+
+    const equipamento = resposta.dados
+
+    // Adaptamos a resposta ao formato já usado pelo layout.
+    setDoacoes([
+      {
+        id: codigoNormalizado,
+        equipamento: 'Equipamento eletrônico',
+        categoria: equipamento.categoria,
+        status: equipamento.status,
+        createdAt: equipamento.criadoEm,
+      },
+    ])
+  } catch (error) {
+    setErro(
+      error.message || 'Não foi possível consultar a doação.'
+    )
+    setDoacoes([])
+  } finally {
+    setLoading(false)
+  }
+}
+
 
   const renderStatusTag = (status) => {
     const mapa = {
@@ -237,7 +246,7 @@ export default function MinhasDoacoes() {
 
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
               Acompanhe o andamento das suas doações de eletrônicos.
-              Informe o CPF utilizado no cadastro para consultar os
+              Informe o código de acompanhamento utilizado no cadastro para consultar os
               registros e verificar o status de cada equipamento.
             </p>
           </div>
@@ -255,7 +264,7 @@ export default function MinhasDoacoes() {
                     Consultar minhas doações
                   </h2>
                   <p className="mt-1 text-sm leading-6 text-slate-400">
-                    Utilize o CPF informado no momento do cadastro.
+                    Utilize o código de acompanhamento informado no momento do cadastro.
                   </p>
                 </div>
               </div>
@@ -266,23 +275,22 @@ export default function MinhasDoacoes() {
               >
                 <div className="min-w-0 flex-1">
                   <label
-                    htmlFor="cpf"
+                    htmlFor="codigo"
                     className="mb-2 block text-sm font-semibold text-slate-300"
                   >
-                    CPF do doador
+                    Código de Acompanhamento
                   </label>
 
                   <input
-                    id="cpf"
-                    name="cpf"
+                    id="codigo"
+                    name="codigo"
                     type="text"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    required
-                    maxLength={14}
-                    placeholder="000.000.000-00"
-                    value={cpf}
-                    onChange={handleCpfChange}
+                    maxLength={32}
+                    placeholder="Digite seu código de acompanhamento"
+                    value={codigo}
+                    onChange={(event) =>
+                      setCodigo(event.target.value.toUpperCase())
+                    }
                     className="w-full rounded-xl border border-white/10 bg-[#0b110e] px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/10"
                   />
                 </div>
@@ -309,7 +317,7 @@ export default function MinhasDoacoes() {
               </form>
 
               <p className="mt-3 text-xs leading-5 text-slate-500">
-                🔒 O CPF é utilizado para localizar as doações
+                🔒 O Código de Acompanhamento é utilizado para localizar as doações
                 vinculadas ao cadastro.
               </p>
             </div>
@@ -359,8 +367,8 @@ export default function MinhasDoacoes() {
 
                     <p className="mt-1 text-sm text-slate-400">
                       {doacoes.length === 1
-                        ? 'Encontramos 1 registro vinculado ao CPF.'
-                        : `Encontramos ${doacoes.length} registros vinculados ao CPF.`}
+                        ? 'Encontramos 1 registro vinculado ao código de acompanhamento.'
+                        : `Encontramos ${doacoes.length} registros vinculados ao código de acompanhamento.`}
                     </p>
                   </div>
 
@@ -418,6 +426,7 @@ export default function MinhasDoacoes() {
 
                   <div className="mt-4 space-y-3">
                     {doacoes.map((item) => (
+                      
                       <article
                         key={item.id}
                         className="rounded-2xl border border-white/[0.08] bg-[#0d1510] p-5 transition duration-300 hover:border-emerald-400/20 hover:bg-[#101b14]"
@@ -445,6 +454,12 @@ export default function MinhasDoacoes() {
                                     )
                                   : 'Data não informada'}
                               </p>
+                              <Link
+                              to={`/minhas-doacoes/${item.id}`}
+                              className="mt-3 inline-block text-sm font-semibold text-emerald-400 hover:underline"
+                            >
+                              Ver detalhes →
+                            </Link>
                             </div>
                           </div>
 
@@ -471,21 +486,21 @@ export default function MinhasDoacoes() {
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">
-                  Não encontramos doações vinculadas ao CPF informado.
+                  Não encontramos doações vinculadas ao código de acompanhamento informado.
                   Confira os dados e tente novamente.
                 </p>
 
                 <button
                   type="button"
                   onClick={() => {
-                    setCpf('')
+                    setCodigo('')
                     setBuscou(false)
                     setErro('')
                     setDoacoes([])
                   }}
                   className="mt-5 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-bold text-slate-200 transition hover:border-emerald-400/30 hover:text-emerald-300"
                 >
-                  Tentar outro CPF
+                  Tentar outro código
                 </button>
               </div>
             )}
@@ -503,7 +518,7 @@ export default function MinhasDoacoes() {
                       Como funciona?
                     </p>
                     <p className="mt-1 text-sm leading-6 text-slate-500">
-                      Informe seu CPF e clique em Consultar. Se houver
+                      Informe seu código de acompanhamento e clique em Consultar. Se houver
                       registros associados, você verá os equipamentos e
                       o status de cada doação nesta página.
                     </p>
