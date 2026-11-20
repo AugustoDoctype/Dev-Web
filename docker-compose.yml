@@ -6,6 +6,9 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+    # Repassa os segredos do backend para o container.
+    env_file:
+      - ./backend/.env
     environment:
       - PORT=3001
       - DATABASE_URL=file:./dev.db
