@@ -9,6 +9,9 @@ export default function MinhasDoacoes() {
   const [loading, setLoading] = useState(false)
   const [buscou, setBuscou] = useState(false)
   const [erro, setErro] = useState('')
+  const [doadorLogado, setDoadorLogado] = useState(
+  () => Boolean(localStorage.getItem('doadorToken'))
+)
 
   // Lê o tema selecionado na Navbar.
   const [tema, setTema] = useState(() =>
@@ -31,6 +34,92 @@ export default function MinhasDoacoes() {
   }, [])
 
 
+  // ============================================================
+  // SINCRONIZAÇÃO DA AUTENTICAÇÃO
+  // ============================================================
+  useEffect(() => {
+    function atualizarAutenticacao() {
+      setDoadorLogado(
+        Boolean(localStorage.getItem('doadorToken'))
+      )
+    }
+
+    window.addEventListener(
+      'eciclo-auth-alterado',
+      atualizarAutenticacao
+    )
+    window.addEventListener('storage', atualizarAutenticacao)
+
+    return () => {
+      window.removeEventListener(
+        'eciclo-auth-alterado',
+        atualizarAutenticacao
+      )
+      window.removeEventListener('storage', atualizarAutenticacao)
+    }
+  }, [])
+
+  // ============================================================
+  // HISTÓRICO AUTOMÁTICO DO DOADOR
+  // ============================================================
+  useEffect(() => {
+    if (!doadorLogado) return
+
+    let ativo = true
+
+    async function carregarHistorico() {
+      setLoading(true)
+      setErro('')
+      setBuscou(false)
+
+      try {
+        const resposta = await apiFetch(
+          '/doadores/me/equipamentos',
+          { auth: 'doador' }
+        )
+
+        if (!ativo) return
+
+        if (!Array.isArray(resposta?.dados)) {
+          throw new Error('Resposta inválida do servidor.')
+        }
+
+        const equipamentos = resposta.dados.map((item) => ({
+          id: item.id,
+          codigoAcompanhamento: item.codigoAcompanhamento,
+          equipamento:
+            item.descricao?.split(' - ')[0] ||
+            item.categoria ||
+            'Equipamento eletrônico',
+          categoria: item.categoria,
+          status: item.status,
+          createdAt: item.criadoEm,
+        }))
+
+        setDoacoes(equipamentos)
+        setBuscou(true)
+      } catch (error) {
+        if (ativo) {
+          setErro(
+            error.message ||
+            'Não foi possível carregar suas doações.'
+          )
+          setDoacoes([])
+        }
+      } finally {
+        if (ativo) setLoading(false)
+      }
+    }
+
+    carregarHistorico()
+
+    return () => {
+      ativo = false
+    }
+  }, [doadorLogado])
+
+
+
 async function handleBuscar(event) {
   event.preventDefault()
 
@@ -50,9 +139,9 @@ async function handleBuscar(event) {
 
   try {
     const resposta = await apiFetch(
-      `/acompanhamento/${encodeURIComponent(codigoNormalizado)}`
-    )
-
+  `/acompanhamento/${encodeURIComponent(codigoNormalizado)}`,
+  { auth: 'none' }
+)
     if (!resposta?.dados) {
       throw new Error('Não foi possível obter a doação.')
     }
@@ -67,6 +156,7 @@ async function handleBuscar(event) {
         categoria: equipamento.categoria,
         status: equipamento.status,
         createdAt: equipamento.criadoEm,
+        codigoAcompanhamento: codigoNormalizado,
       },
     ])
   } catch (error) {
@@ -253,6 +343,7 @@ async function handleBuscar(event) {
 
           {/* Formulário de consulta */}
           <section className="overflow-hidden rounded-3xl border border-white/[0.08] bg-[#111b16] shadow-2xl shadow-black/10">
+            {!doadorLogado && (
             <div className="border-b border-white/[0.07] p-6 sm:p-8">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/15 bg-emerald-400/10 text-2xl">
@@ -321,6 +412,7 @@ async function handleBuscar(event) {
                 vinculadas ao cadastro.
               </p>
             </div>
+            )}
 
             {/* Mensagem de erro */}
             {erro && (
@@ -365,10 +457,12 @@ async function handleBuscar(event) {
                       Suas doações
                     </h2>
 
-                    <p className="mt-1 text-sm text-slate-400">
-                      {doacoes.length === 1
-                        ? 'Encontramos 1 registro vinculado ao código de acompanhamento.'
-                        : `Encontramos ${doacoes.length} registros vinculados ao código de acompanhamento.`}
+                   <p className="mt-1 text-sm text-slate-400">
+                 {doadorLogado
+                  ? `Você possui ${doacoes.length} ${
+                    doacoes.length === 1 ? 'doação cadastrada' : 'doações cadastradas'
+                    }.`
+                   : 'Resultado da consulta pelo código de acompanhamento.'}
                     </p>
                   </div>
 
@@ -426,7 +520,7 @@ async function handleBuscar(event) {
 
                   <div className="mt-4 space-y-3">
                     {doacoes.map((item) => (
-                      
+
                       <article
                         key={item.id}
                         className="rounded-2xl border border-white/[0.08] bg-[#0d1510] p-5 transition duration-300 hover:border-emerald-400/20 hover:bg-[#101b14]"
@@ -454,12 +548,18 @@ async function handleBuscar(event) {
                                     )
                                   : 'Data não informada'}
                               </p>
+                            {item.codigoAcompanhamento ? (
                               <Link
-                              to={`/minhas-doacoes/${item.id}`}
-                              className="mt-3 inline-block text-sm font-semibold text-emerald-400 hover:underline"
-                            >
-                              Ver detalhes →
-                            </Link>
+                                to={`/minhas-doacoes/${item.codigoAcompanhamento}`}
+                                className="mt-3 inline-block text-sm font-semibold text-emerald-400 hover:underline"
+                              >
+                                Ver detalhes →
+                              </Link>
+                            ) : (
+                              <p className="mt-3 text-xs text-slate-500">
+                                Código de acompanhamento indisponível
+                              </p>
+                            )}
                             </div>
                           </div>
 
@@ -486,22 +586,27 @@ async function handleBuscar(event) {
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">
-                  Não encontramos doações vinculadas ao código de acompanhamento informado.
-                  Confira os dados e tente novamente.
+                {doadorLogado
+                ? 'Você ainda não cadastrou nenhuma doação. Cadastre seu primeiro equipamento para começar.'
+                : 'Não encontramos doações vinculadas ao código de acompanhamento informado. Confira os dados e tente novamente.'}
                 </p>
 
+
+                {!doadorLogado && (
                 <button
-                  type="button"
-                  onClick={() => {
-                    setCodigo('')
-                    setBuscou(false)
-                    setErro('')
-                    setDoacoes([])
-                  }}
-                  className="mt-5 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-bold text-slate-200 transition hover:border-emerald-400/30 hover:text-emerald-300"
-                >
-                  Tentar outro código
-                </button>
+                type="button"
+                onClick={() => {
+                  setCodigo('')
+                  setBuscou(false)
+                  setErro('')
+                  setDoacoes([])
+                }}
+                className="mt-5 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-bold text-slate-200 transition hover:border-emerald-400/30 hover:text-emerald-300"
+              >
+                Tentar outro código
+              </button>
+)}
+
               </div>
             )}
 

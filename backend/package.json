@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "test": "node --env-file=.env.test ./node_modules/vitest/vitest.mjs run"
+    "test": "vitest run"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

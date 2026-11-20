@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 
 const links = [
   { to: '/', label: 'Início', end: true },
@@ -14,6 +14,57 @@ export default function Navbar() {
   const [tema, setTema] = useState(
     () => localStorage.getItem('eciclo-tema') || 'escuro'
   )
+
+      function sairDaConta() {
+      // Remove somente a sessão do doador.
+      localStorage.removeItem('doadorToken')
+      localStorage.removeItem('doadorPerfil')
+
+      // Atualiza o estado da interface.
+      setDoadorLogado(false)
+      setMenuAberto(false)
+
+      window.dispatchEvent(
+        new Event('eciclo-auth-alterado')
+      )
+
+      // Redireciona para a página inicial.
+      navigate('/')
+    }
+  const navigate = useNavigate()
+
+    // Verifica se existe uma sessão de doador.
+    const [doadorLogado, setDoadorLogado] = useState(
+      () => Boolean(localStorage.getItem('doadorToken'))
+    )
+
+    // Sincroniza o menu quando o usuário entra ou sai.
+    useEffect(() => {
+      function atualizarAutenticacao() {
+        setDoadorLogado(
+          Boolean(localStorage.getItem('doadorToken'))
+        )
+      }
+
+      window.addEventListener(
+        'eciclo-auth-alterado',
+        atualizarAutenticacao
+      )
+
+      window.addEventListener('storage', atualizarAutenticacao)
+
+      return () => {
+        window.removeEventListener(
+          'eciclo-auth-alterado',
+          atualizarAutenticacao
+        )
+
+        window.removeEventListener(
+          'storage',
+          atualizarAutenticacao
+        )
+      }
+    }, [])
 
   // Aplica e sincroniza o tema em todo o projeto.
   useEffect(() => {
@@ -176,23 +227,59 @@ export default function Navbar() {
               {modoClaro ? '🌙' : '☀️'}
             </button>
 
-            <Link
-              to="/login"
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition duration-300 ${
-                modoClaro
-                  ? 'text-gray-700 hover:bg-gray-100 hover:text-emerald-700'
-                  : 'text-gray-300 hover:bg-white/[0.05] hover:text-white'
-              }`}
-            >
-              Entrar
-            </Link>
 
-            <Link
-              to="/cadastro"
-              className="rounded-xl border border-emerald-300/20 bg-gradient-to-r from-emerald-500 to-green-400 px-5 py-2.5 text-sm font-bold text-[#07110d] shadow-lg shadow-emerald-950/10 transition duration-300 hover:-translate-y-0.5 hover:from-emerald-400 hover:to-green-300"
-            >
-              Cadastrar
-            </Link>
+            {/* Menu do usuário autenticado */}
+            {doadorLogado ? (
+              <>
+              <Link
+                to="/meu-perfil"
+                onClick={() => setMenuAberto(false)}
+                className="flex-1 rounded-xl border border-emerald-400/20 px-4 py-3 text-center text-sm font-semibold text-emerald-500"
+              >
+                Meu Perfil
+              </Link>
+                <Link
+                  to="/minhas-doacoes"
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                    modoClaro
+                      ? 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-300 hover:bg-white/[0.05]'
+                  }`}
+                >
+                  Minha área
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={sairDaConta}
+                  className="rounded-xl border border-emerald-400/20 px-5 py-2.5 text-sm font-bold text-emerald-500 transition hover:bg-emerald-500/10"
+                >
+                  Sair
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Menu do visitante */}
+                <Link
+                  to="/login"
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                    modoClaro
+                      ? 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-300 hover:bg-white/[0.05]'
+                  }`}
+                >
+                  Entrar
+                </Link>
+
+                <Link
+                  to="/cadastro"
+                  className="rounded-xl border border-emerald-300/20 bg-gradient-to-r from-emerald-500 to-green-400 px-5 py-2.5 text-sm font-bold text-[#07110d] shadow-lg shadow-emerald-950/10 transition duration-300 hover:-translate-y-0.5 hover:from-emerald-400 hover:to-green-300"
+                >
+                  Cadastrar
+                </Link>
+              </>
+            )}
+
           </div>
         </div>
 
@@ -294,25 +381,55 @@ export default function Navbar() {
                 modoClaro ? 'border-gray-200' : 'border-white/10'
               }`}
             >
-              <Link
-                to="/login"
-                onClick={() => setMenuAberto(false)}
-                className={`flex-1 rounded-xl border px-4 py-3 text-center text-sm font-semibold transition ${
-                  modoClaro
-                    ? 'border-gray-200 bg-white text-gray-700 hover:border-emerald-300 hover:text-emerald-700'
-                    : 'border-white/10 bg-white/[0.03] text-gray-200 hover:border-emerald-400/30 hover:text-emerald-300'
-                }`}
-              >
-                Entrar
-              </Link>
 
-              <Link
-                to="/cadastro"
-                onClick={() => setMenuAberto(false)}
-                className="flex-1 rounded-xl bg-gradient-to-r from-emerald-500 to-green-400 px-4 py-3 text-center text-sm font-bold text-[#07110d] transition hover:from-emerald-400 hover:to-green-300"
-              >
-                Cadastrar
-              </Link>
+              {doadorLogado ? (
+                <>
+                <Link
+                to="/meu-perfil"
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                  modoClaro
+                    ? 'text-gray-700 hover:bg-gray-100'
+                    : 'text-gray-300 hover:bg-white/[0.05]'
+                  }`}
+                >
+                 Meu Perfil
+                </Link>
+                  <Link
+                    to="/minhas-doacoes"
+                    onClick={() => setMenuAberto(false)}
+                    className="flex-1 rounded-xl border border-emerald-400/20 px-4 py-3 text-center text-sm font-semibold text-emerald-500"
+                  >
+                    Minha área
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={sairDaConta}
+                    className="flex-1 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-[#07110b]"
+                  >
+                    Sair
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setMenuAberto(false)}
+                    className="flex-1 rounded-xl border border-emerald-400/20 px-4 py-3 text-center text-sm font-semibold text-emerald-500"
+                  >
+                    Entrar
+                  </Link>
+
+                  <Link
+                    to="/cadastro"
+                    onClick={() => setMenuAberto(false)}
+                    className="flex-1 rounded-xl bg-emerald-500 px-4 py-3 text-center text-sm font-bold text-[#07110b]"
+                  >
+                    Cadastrar
+                  </Link>
+                </>
+              )}
+
             </div>
           </div>
         </div>

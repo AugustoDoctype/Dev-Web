@@ -24,9 +24,51 @@ model Doador {
   whatsapp     String
   bairro       String
   criadoEm     DateTime      @default(now()) @map("criado_em")
+
+  // Equipamentos cadastrados
   equipamentos Equipamento[]
 
+  // Conta de acesso (opcional para doadores antigos)
+  conta        ContaDoador?
+
+  // Endereços cadastrados
+  enderecos    EnderecoDoador[]
+
   @@map("doadores")
+}
+
+model ContaDoador {
+  id        String   @id @default(uuid())
+  doadorId  String   @unique @map("doador_id")
+  senhaHash String   @map("senha_hash")
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  // Cada conta pertence a um único doador
+  doador Doador @relation(fields: [doadorId], references: [id], onDelete: Cascade)
+
+  @@map("contas_doadores")
+}
+
+model EnderecoDoador {
+  id           String   @id @default(uuid())
+  doadorId     String   @map("doador_id")
+
+  cep          String
+  logradouro   String
+  numero       String
+  bairro       String
+  cidade       String
+  estado       String
+
+  preferencial Boolean  @default(false)
+
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  // Um doador pode possuir vários endereços
+  doador Doador @relation(fields: [doadorId], references: [id], onDelete: Cascade)
+
+  @@map("enderecos_doadores")
 }
 
 model Equipamento {
@@ -44,6 +86,15 @@ model Equipamento {
   atualizadoEm DateTime @updatedAt @map("atualizado_em")
 
   doador Doador @relation(fields: [doadorId], references: [id])
+
+  // Cópia imutável do endereço escolhido na criação da doação.
+  // Campos opcionais para compatibilidade com equipamentos antigos e fluxo visitante.
+  enderecoColetaCep        String? @map("endereco_coleta_cep")
+  enderecoColetaLogradouro String? @map("endereco_coleta_logradouro")
+  enderecoColetaNumero     String? @map("endereco_coleta_numero")
+  enderecoColetaBairro     String? @map("endereco_coleta_bairro")
+  enderecoColetaCidade     String? @map("endereco_coleta_cidade")
+  enderecoColetaEstado     String? @map("endereco_coleta_estado")
 
   @@map("equipamentos")
 }

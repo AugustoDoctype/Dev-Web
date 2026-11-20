@@ -1,3 +1,4 @@
+import { apiFetch } from '../services/api'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/public/Navbar'
@@ -6,11 +7,15 @@ export default function Cadastro() {
   const navigate = useNavigate()
 
   const [formData, setFormData] = useState({
-    nome: '',
-    email: '',
-    senha: '',
-    confirmarSenha: '',
-  })
+  nome: '',
+  email: '',
+  whatsapp: '',
+  bairro: '',
+  senha: '',
+  confirmarSenha: '',
+})
+
+const [loading, setLoading] = useState(false)
 
   const [erro, setErro] = useState('')
 
@@ -20,7 +25,7 @@ export default function Cadastro() {
 
   const modoClaro = tema === 'claro'
 
-  
+
 useEffect(() => {
   const atualizarTema = (evento) => {
     const novoTema =
@@ -44,58 +49,69 @@ useEffect(() => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setErro('')
 
-    if (formData.senha !== formData.confirmarSenha) {
-      setErro('As senhas não coincidem.')
-      return
+async function handleSubmit(e) {
+  e.preventDefault()
+
+  if (loading) return
+
+  setErro('')
+
+  if (formData.senha !== formData.confirmarSenha) {
+    setErro('As senhas não coincidem.')
+    return
+  }
+
+  if (formData.senha.length < 8) {
+    setErro('A senha deve ter pelo menos 8 caracteres.')
+    return
+  }
+
+  setLoading(true)
+
+  try {
+    // Cadastro real no banco de dados.
+    const resposta = await apiFetch('/doador-auth/cadastro', {
+      method: 'POST',
+      auth: 'none',
+      body: JSON.stringify({
+        nome: formData.nome.trim(),
+        email: formData.email.trim().toLowerCase(),
+        whatsapp: formData.whatsapp.trim(),
+        bairro: formData.bairro.trim(),
+        senha: formData.senha,
+      }),
+    })
+
+    if (!resposta?.token || !resposta?.dados?.id) {
+      throw new Error(
+        'O servidor não confirmou o cadastro da conta.'
+      )
     }
 
-    if (formData.senha.length < 6) {
-      setErro('Sua senha deve ter pelo menos 6 caracteres.')
-      return
-    }
-
-    const usuarios = JSON.parse(
-      localStorage.getItem('mock_usuarios') || '[]'
-    )
-
-    const emailNormalizado = formData.email.trim().toLowerCase()
-
-    const usuarioExiste = usuarios.some(
-      (u) => u.email.toLowerCase() === emailNormalizado
-    )
-
-    if (usuarioExiste) {
-      setErro('Este e-mail já está cadastrado.')
-      return
-    }
-
-    const novoUsuario = {
-      id: Date.now(),
-      nome: formData.nome.trim(),
-      email: emailNormalizado,
-      senha: formData.senha,
-      tipo: 'USER',
-    }
-
-    usuarios.push(novoUsuario)
-
-    localStorage.setItem('mock_usuarios', JSON.stringify(usuarios))
-    localStorage.setItem('userToken', 'mock-token-user')
+    // Salva a sessão, não a senha.
+    localStorage.setItem('doadorToken', resposta.token)
 
     localStorage.setItem(
-      'userPerfil',
-      JSON.stringify({
-        nome: novoUsuario.nome,
-        email: novoUsuario.email,
-      })
+      'doadorPerfil',
+      JSON.stringify(resposta.dados)
     )
 
-    navigate('/minhas-doacoes')
+    // Remove dados da autenticação demonstrativa antiga.
+    localStorage.removeItem('userToken')
+    localStorage.removeItem('userPerfil')
+    window.dispatchEvent(
+    new Event('eciclo-auth-alterado')
+    )
+
+    navigate('/doar', { replace: true })
+  } catch (error) {
+    setErro(error.message || 'Não foi possível criar a conta.')
+  } finally {
+    setLoading(false)
   }
+}
+
 
   const classeTexto = modoClaro ? 'text-slate-700' : 'text-slate-300'
 
@@ -216,7 +232,7 @@ useEffect(() => {
           <section className="p-6 sm:p-10">
             <div className="mb-8">
               <span className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-500">
-                Cadastro gratuito
+                Cadastro
               </span>
 
               <h2 className={`mt-3 text-2xl font-extrabold ${classeTitulo}`}>
@@ -268,6 +284,54 @@ useEffect(() => {
                   E-mail
                 </label>
 
+                {/* WhatsApp */}
+                <div>
+                  <label
+                    htmlFor="whatsapp"
+                    className={`mb-2 block text-sm font-semibold ${classeTexto}`}
+                  >
+                    WhatsApp com DDD
+                  </label>
+
+                  <input
+                    id="whatsapp"
+                    type="tel"
+                    name="whatsapp"
+                    autoComplete="tel"
+                    required
+                    minLength={10}
+                    maxLength={20}
+                    placeholder="(92) 99999-9999"
+                    value={formData.whatsapp}
+                    onChange={handleChange}
+                    className={`block w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-500 ${classeCampo}`}
+                  />
+                </div>
+
+                {/* Bairro */}
+                <div>
+                  <label
+                    htmlFor="bairro"
+                    className={`mb-2 block text-sm font-semibold ${classeTexto}`}
+                  >
+                    Bairro
+                  </label>
+
+                  <input
+                    id="bairro"
+                    type="text"
+                    name="bairro"
+                    required
+                    minLength={2}
+                    maxLength={120}
+                    placeholder="Digite seu bairro"
+                    value={formData.bairro}
+                    onChange={handleChange}
+                    className={`block w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-500 ${classeCampo}`}
+                  />
+                </div>
+
+
                 <input
                   id="email"
                   type="email"
@@ -295,15 +359,15 @@ useEffect(() => {
                   name="senha"
                   autoComplete="new-password"
                   required
-                  minLength={6}
-                  placeholder="Mínimo de 6 caracteres"
+                  minLength={8}
+                  placeholder="Mínimo de 8 caracteres"
                   value={formData.senha}
                   onChange={handleChange}
                   className={`block w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 ${classeCampo}`}
                 />
 
                 <p className="mt-2 text-xs text-slate-500">
-                  Utilize pelo menos 6 caracteres.
+                  Utilize pelo menos 8 caracteres.
                 </p>
               </div>
 
@@ -321,7 +385,7 @@ useEffect(() => {
                   name="confirmarSenha"
                   autoComplete="new-password"
                   required
-                  minLength={6}
+                  minLength={8}
                   placeholder="Digite a senha novamente"
                   value={formData.confirmarSenha}
                   onChange={handleChange}
@@ -331,10 +395,11 @@ useEffect(() => {
 
               <button
                 type="submit"
+                disabled={loading}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-[#07110b] shadow-lg shadow-emerald-500/10 transition hover:bg-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/20"
               >
-                Criar conta
-                <span aria-hidden="true">→</span>
+              {loading ? 'Criando conta...' : 'Criar conta'}
+              {!loading && <span aria-hidden="true">→</span>}
               </button>
             </form>
 
