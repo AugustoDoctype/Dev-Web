@@ -78,6 +78,7 @@ model Equipamento {
   descricao    String
   fotoUrl      String?  @map("foto_url")
   status       String   @default("PENDENTE")
+  modalidadeEntrega String @default("NAO_INFORMADA") @map("modalidade_entrega")
   destinoFinal String?  @map("destino_final")
     // Código exclusivo para acompanhar a doação
   codigoAcompanhamento String?  @unique @map("codigo_acompanhamento")

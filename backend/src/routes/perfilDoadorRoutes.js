@@ -72,8 +72,16 @@ router.put('/', async (req, res) => {
 const novoEquipamentoSchema = z.object({
   categoria: z.string().trim().min(3).max(120),
   descricao: z.string().trim().min(5).max(2000),
-  enderecoId: z.string().uuid(),
-}).strict()
+  modalidadeEntrega: z.enum(['PONTO_COLETA', 'COLETA_DOMICILIAR']),
+  enderecoId: z.string().uuid().optional(),
+}).strict().superRefine((dados, contexto) => {
+  if (dados.modalidadeEntrega === 'COLETA_DOMICILIAR' && !dados.enderecoId) {
+    contexto.addIssue({ code: 'custom', path: ['enderecoId'], message: 'Selecione um endereço para solicitar retirada.' })
+  }
+  if (dados.modalidadeEntrega === 'PONTO_COLETA' && dados.enderecoId) {
+    contexto.addIssue({ code: 'custom', path: ['enderecoId'], message: 'Entrega em ponto de coleta não utiliza endereço residencial.' })
+  }
+})
 
 router.post('/equipamentos', async (req, res) => {
   try {
@@ -85,15 +93,20 @@ router.post('/equipamentos', async (req, res) => {
     })
     if (!doador) return res.status(404).json({ erro: 'Conta de doador não encontrada.' })
 
-    // Não confia no endereço enviado pelo navegador: busca-o no banco e exige titularidade.
-    const endereco = await prisma.enderecoDoador.findFirst({
-      where: { id: dados.enderecoId, doadorId },
-      select: {
-        cep: true, logradouro: true, numero: true, bairro: true,
-        cidade: true, estado: true,
-      },
-    })
-    if (!endereco) return res.status(404).json({ erro: 'Endereço de coleta não encontrado na sua conta.' })
+    // Apenas retiradas possuem endereço; verificamos a titularidade no servidor.
+    let endereco = null
+    if (dados.modalidadeEntrega === 'COLETA_DOMICILIAR') {
+      endereco = await prisma.enderecoDoador.findFirst({
+        where: { id: dados.enderecoId, doadorId },
+        select: {
+          cep: true, logradouro: true, numero: true, bairro: true,
+          cidade: true, estado: true,
+        },
+      })
+      if (!endereco) {
+        return res.status(404).json({ erro: 'Endereço de retirada não encontrado na sua conta.' })
+      }
+    }
 
     const duplicado = await prisma.equipamento.findFirst({
       where: { doadorId, categoria: dados.categoria, descricao: dados.descricao },
@@ -109,18 +122,21 @@ router.post('/equipamentos', async (req, res) => {
         categoria: dados.categoria,
         descricao: dados.descricao,
         status: 'PENDENTE',
+        modalidadeEntrega: dados.modalidadeEntrega,
         codigoAcompanhamento: randomBytes(16).toString('hex').toUpperCase(),
-        // Snapshot: uma edição futura no perfil não altera o local desta doação.
-        enderecoColetaCep: endereco.cep,
-        enderecoColetaLogradouro: endereco.logradouro,
-        enderecoColetaNumero: endereco.numero,
-        enderecoColetaBairro: endereco.bairro,
-        enderecoColetaCidade: endereco.cidade,
-        enderecoColetaEstado: endereco.estado,
+        // Cópia histórica apenas quando há solicitação de retirada.
+        ...(endereco ? {
+          enderecoColetaCep: endereco.cep,
+          enderecoColetaLogradouro: endereco.logradouro,
+          enderecoColetaNumero: endereco.numero,
+          enderecoColetaBairro: endereco.bairro,
+          enderecoColetaCidade: endereco.cidade,
+          enderecoColetaEstado: endereco.estado,
+        } : {}),
       },
       select: {
         id: true, categoria: true, descricao: true,
-        status: true, codigoAcompanhamento: true,
+        status: true, modalidadeEntrega: true, codigoAcompanhamento: true,
         criadoEm: true, atualizadoEm: true,
         enderecoColetaCep: true, enderecoColetaLogradouro: true,
         enderecoColetaNumero: true, enderecoColetaBairro: true,
@@ -140,7 +156,7 @@ router.get('/equipamentos', async (req, res) => {
       where: { doadorId: req.doadorLogado.id },
       select: {
         id: true, categoria: true, descricao: true, status: true,
-        codigoAcompanhamento: true, criadoEm: true, atualizadoEm: true,
+        modalidadeEntrega: true, codigoAcompanhamento: true, criadoEm: true, atualizadoEm: true,
         enderecoColetaCep: true, enderecoColetaLogradouro: true,
         enderecoColetaNumero: true, enderecoColetaBairro: true,
         enderecoColetaCidade: true, enderecoColetaEstado: true,

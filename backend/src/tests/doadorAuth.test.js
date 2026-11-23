@@ -137,6 +137,7 @@ describe('Conta de doador', () => {
       .send({
         categoria: 'Monitores e telas', descricao: 'Monitor de teste',
         doadorId: 'outro-doador', status: 'CONCLUIDO',
+        modalidadeEntrega: 'COLETA_DOMICILIAR',
         enderecoId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       })
     expect(resposta.status).toBe(400)
@@ -159,7 +160,7 @@ describe('Conta de doador', () => {
     try {
       const resposta = await request(app).post('/doadores/me/equipamentos')
         .set('Authorization', `Bearer ${token}`)
-        .send({ categoria: 'Monitores e telas', descricao: 'Monitor de teste', enderecoId })
+        .send({ categoria: 'Monitores e telas', descricao: 'Monitor de teste', modalidadeEntrega: 'COLETA_DOMICILIAR', enderecoId })
       expect(resposta.status).toBe(201)
       expect(consultaEndereco).toHaveBeenCalledWith(expect.objectContaining({
         where: { id: enderecoId, doadorId: 'doador-123' },
@@ -167,7 +168,7 @@ describe('Conta de doador', () => {
       expect(resposta.body.dados.codigoAcompanhamento).toHaveLength(32)
       expect(criacao).toHaveBeenCalledWith(expect.objectContaining({
         data: expect.objectContaining({
-          doadorId: 'doador-123', status: 'PENDENTE',
+          doadorId: 'doador-123', status: 'PENDENTE', modalidadeEntrega: 'COLETA_DOMICILIAR',
           codigoAcompanhamento: expect.stringMatching(/^[A-F0-9]{32}$/),
           enderecoColetaCep: '69000000',
           enderecoColetaLogradouro: 'Rua das Flores',
@@ -185,10 +186,10 @@ describe('Conta de doador', () => {
     }
   })
 
-  it('recusa cadastrar equipamento sem endereço selecionado', async () => {
+  it('recusa retirada sem endereço selecionado', async () => {
     const resposta = await request(app).post('/doadores/me/equipamentos')
       .set('Authorization', `Bearer ${criarTokenDoador({ id: 'doador-123' })}`)
-      .send({ categoria: 'Monitores e telas', descricao: 'Monitor de teste' })
+      .send({ categoria: 'Monitores e telas', descricao: 'Monitor de teste', modalidadeEntrega: 'COLETA_DOMICILIAR' })
     expect(resposta.status).toBe(400)
   })
 
@@ -200,7 +201,7 @@ describe('Conta de doador', () => {
     try {
       const resposta = await request(app).post('/doadores/me/equipamentos')
         .set('Authorization', `Bearer ${criarTokenDoador({ id: 'doador-123' })}`)
-        .send({ categoria: 'Monitores e telas', descricao: 'Monitor de teste', enderecoId })
+        .send({ categoria: 'Monitores e telas', descricao: 'Monitor de teste', modalidadeEntrega: 'COLETA_DOMICILIAR', enderecoId })
       expect(resposta.status).toBe(404)
       expect(consultaEndereco).toHaveBeenCalledWith(expect.objectContaining({
         where: { id: enderecoId, doadorId: 'doador-123' },
@@ -211,6 +212,59 @@ describe('Conta de doador', () => {
       consultaEndereco.mockRestore()
       criacao.mockRestore()
     }
+  })
+
+  it('permite cadastrar em ponto de coleta sem usar endereço pessoal', async () => {
+    const token = criarTokenDoador({ id: 'doador-123' })
+    const consultaDoador = vi.spyOn(prisma.doador, 'findUnique').mockResolvedValue({ id: 'doador-123' })
+    const consultaEndereco = vi.spyOn(prisma.enderecoDoador, 'findFirst')
+    const consultaDuplicado = vi.spyOn(prisma.equipamento, 'findFirst').mockResolvedValue(null)
+    const criacao = vi.spyOn(prisma.equipamento, 'create').mockResolvedValue({
+      id: 'eq-ponto', categoria: 'Monitores e telas', descricao: 'Monitor de teste',
+      modalidadeEntrega: 'PONTO_COLETA', status: 'PENDENTE', codigoAcompanhamento: 'B'.repeat(32),
+    })
+    try {
+      const resposta = await request(app).post('/doadores/me/equipamentos')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ categoria: 'Monitores e telas', descricao: 'Monitor de teste', modalidadeEntrega: 'PONTO_COLETA' })
+      expect(resposta.status).toBe(201)
+      expect(consultaEndereco).not.toHaveBeenCalled()
+      const gravados = criacao.mock.calls[0][0].data
+      expect(gravados).toMatchObject({
+        modalidadeEntrega: 'PONTO_COLETA', doadorId: 'doador-123', status: 'PENDENTE',
+      })
+      expect(gravados).not.toHaveProperty('enderecoColetaCep')
+    } finally {
+      consultaDoador.mockRestore()
+      consultaEndereco.mockRestore()
+      consultaDuplicado.mockRestore()
+      criacao.mockRestore()
+    }
+  })
+
+  it('recusa endereço residencial na entrega em ponto de coleta', async () => {
+    const resposta = await request(app).post('/doadores/me/equipamentos')
+      .set('Authorization', `Bearer ${criarTokenDoador({ id: 'doador-123' })}`)
+      .send({ categoria: 'Monitores e telas', descricao: 'Monitor de teste',
+        modalidadeEntrega: 'PONTO_COLETA', enderecoId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' })
+    expect(resposta.status).toBe(400)
+  })
+
+  it('bloqueia rotas antigas de cadastro para visitantes', async () => {
+    expect((await request(app).post('/doadores').send({
+      nome: 'Visitante', email: 'teste@exemplo.com',
+    })).status).toBe(401)
+    expect((await request(app).post('/equipamentos').send({
+      doadorId: 'doador-123', categoria: 'Monitores e telas',
+      descricao: 'Monitor de teste', status: 'CONCLUIDO',
+    })).status).toBe(401)
+  })
+
+  it('bloqueia JWT de doador em POST administrativo de equipamentos', async () => {
+    const resposta = await request(app).post('/equipamentos')
+      .set('Authorization', `Bearer ${criarTokenDoador({ id: 'doador-123' })}`)
+      .send({ doadorId: 'outra-conta', categoria: 'Monitores e telas', descricao: 'Monitor de teste' })
+    expect(resposta.status).toBe(403)
   })
 
   it('não permite consultar endereços sem token', async () => {

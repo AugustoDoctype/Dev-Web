@@ -155,19 +155,10 @@ export default function DetalhesMinhaDoacao() {
                 </div>
               )}
 
-              {minhaDoacao && doacao.enderecoColetaLogradouro && (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-sm text-slate-500">Endereço escolhido para esta doação</p>
-                  <p className="mt-1 font-bold">
-                    {doacao.enderecoColetaLogradouro}, {doacao.enderecoColetaNumero}
-                  </p>
-                  <p className="text-sm text-slate-700">
-                    {doacao.enderecoColetaBairro} — {doacao.enderecoColetaCidade}/{doacao.enderecoColetaEstado}
-                  </p>
-                  <p className="text-sm text-slate-600">CEP: {doacao.enderecoColetaCep}</p>
-                  <p className="mt-2 text-xs text-slate-500">
-                    Endereço registrado no momento da doação. Alterações no perfil não afetam este registro.
-                  </p>
+              {minhaDoacao && doacao.modalidadeEntrega && (
+                <div>
+                  <p className="text-sm text-slate-500">Forma de entrega</p>
+                  <p className="font-bold">{doacao.modalidadeEntrega === 'PONTO_COLETA' ? 'Entrega no ponto de coleta' : doacao.modalidadeEntrega === 'COLETA_DOMICILIAR' ? 'Retirada solicitada' : 'Não informada'}</p>
                 </div>
               )}
 

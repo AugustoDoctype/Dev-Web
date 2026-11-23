@@ -19,3 +19,6 @@ build/
 *.db-journal
 # Backups temporários das alterações
 .backup_eciclo_etapa5/
+
+# Cópias de segurança locais das finalizações
+.backup_eciclo_finalizacao_*/

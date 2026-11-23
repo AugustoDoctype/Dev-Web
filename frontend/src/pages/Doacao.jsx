@@ -10,7 +10,6 @@ const ESTADO_INICIAL = {
   nomeDoador: '',
   email: '',
   telefone: '',
-  cpf: '',
   equipamento: '',
   categoria: '',
   condicao: '',
@@ -50,31 +49,6 @@ function somenteDigitos(valor) {
   return valor.replace(/\D/g, '')
 }
 
-function formatarCPF(valor) {
-  return somenteDigitos(valor)
-    .slice(0, 11)
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
-}
-
-function cpfValido(valor) {
-  const cpf = somenteDigitos(valor)
-  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false
-
-  for (let tamanho = 9; tamanho <= 10; tamanho += 1) {
-    const soma = [...cpf.slice(0, tamanho)].reduce(
-      (total, digito, indice) => total + Number(digito) * (tamanho + 1 - indice),
-      0
-    )
-    const resto = (soma * 10) % 11
-    const verificador = resto === 10 ? 0 : resto
-    if (verificador !== Number(cpf[tamanho])) return false
-  }
-
-  return true
-}
-
 function formatarTelefone(valor) {
   const numeros = somenteDigitos(valor).slice(0, 11)
   if (numeros.length <= 10) {
@@ -91,15 +65,7 @@ function formatarCEP(valor) {
   return somenteDigitos(valor).slice(0, 8).replace(/(\d{5})(\d)/, '$1-$2')
 }
 
-function validarFormulario(dados, { autenticado, precisaEndereco }) {
-  if (!autenticado && dados.nomeDoador.trim().length < 3) return 'Informe o nome completo do doador.'
-  if (!autenticado && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email.trim())) {
-    return 'Informe um e-mail válido.'
-  }
-  if (!autenticado && ![10, 11].includes(somenteDigitos(dados.telefone).length)) {
-    return 'Informe um telefone com DDD válido.'
-  }
-  if (!autenticado && !cpfValido(dados.cpf)) return 'Informe um CPF válido.'
+function validarFormulario(dados, { precisaEndereco }) {
   if (dados.equipamento.trim().length < 3) return 'Informe o nome do equipamento.'
   if (!CATEGORIAS.includes(dados.categoria)) return 'Selecione uma categoria válida.'
   if (!CONDICOES.some((item) => item.valor === dados.condicao)) {
@@ -178,6 +144,7 @@ export default function Doacao() {
   const [carregandoPerfil, setCarregandoPerfil] = useState(temSessao)
   const [enderecoSelecionado, setEnderecoSelecionado] = useState(null)
   const [editarEndereco, setEditarEndereco] = useState(false)
+  const [modalidadeEntrega, setModalidadeEntrega] = useState('PONTO_COLETA')
 
   useEffect(() => {
     if (!temSessao) return
@@ -219,7 +186,8 @@ export default function Doacao() {
     return () => { ativo = false }
   }, [temSessao])
 
-  const precisaEndereco = !temSessao || !enderecoSelecionado || editarEndereco
+  const precisaEndereco = modalidadeEntrega === 'COLETA_DOMICILIAR'
+    && (!enderecoSelecionado || editarEndereco)
 
   function restaurarEndereco() {
     if (!enderecoSelecionado) return
@@ -267,7 +235,6 @@ export default function Doacao() {
     const { name, value } = event.target
     let valor = value
 
-    if (name === 'cpf') valor = formatarCPF(value)
     if (name === 'telefone') valor = formatarTelefone(value)
     if (name === 'cep') {
       valor = formatarCEP(value)
@@ -318,12 +285,13 @@ export default function Doacao() {
   // 4.3. Cadastro: a sessão identifica o doador, nunca o ID enviado pelo navegador.
   async function handleSubmit(event) {
     event.preventDefault()
-    if (loading || buscandoCep || carregandoPerfil || (temSessao && !perfil)) return
+    if (!temSessao) {
+      setErro('Entre na sua conta para cadastrar um equipamento.')
+      return
+    }
+    if (loading || buscandoCep || carregandoPerfil || !perfil) return
 
-    const mensagemValidacao = validarFormulario(formData, {
-      autenticado: temSessao,
-      precisaEndereco,
-    })
+    const mensagemValidacao = validarFormulario(formData, { precisaEndereco })
     if (mensagemValidacao) {
       setErro(mensagemValidacao)
       return
@@ -338,16 +306,13 @@ export default function Doacao() {
         formData.descricao.trim(),
         `Condição: ${formData.condicao}`,
       ].filter(Boolean).join(' - ')
-      let respostaEquipamento
-
-      if (temSessao) {
-        // O endpoint recebe somente um ID de endereço que pertence ao usuário.
-        let enderecoId = enderecoSelecionado?.id || null
-        // Só salva um endereço novo quando necessário. Não sobrescreve o antigo.
+      // Criação autenticada: o JWT identifica o titular; não enviamos doadorId.
+      let enderecoId
+      if (modalidadeEntrega === 'COLETA_DOMICILIAR') {
+        enderecoId = enderecoSelecionado?.id || null
         if (precisaEndereco && enderecoMudou()) {
           const respostaEndereco = await apiFetch('/doadores/me/enderecos', {
-            auth: 'doador',
-            method: 'POST',
+            auth: 'doador', method: 'POST',
             body: JSON.stringify({
               cep: somenteDigitos(formData.cep),
               logradouro: formData.logradouro.trim(),
@@ -365,43 +330,18 @@ export default function Doacao() {
           setEnderecoSelecionado(respostaEndereco.dados)
           setEditarEndereco(false)
         }
-
-        if (!enderecoId) throw new Error('Selecione ou cadastre um endereço de coleta.')
-
-        // O backend verifica a titularidade e copia o endereço para o equipamento.
-        respostaEquipamento = await apiFetch('/doadores/me/equipamentos', {
-          auth: 'doador',
-          method: 'POST',
-          body: JSON.stringify({
-            categoria: formData.categoria,
-            descricao: descricaoCompleta,
-            enderecoId,
-          }),
-        })
-      } else {
-        // Compatibilidade temporária com o cadastro de visitante antigo.
-        // Estas rotas públicas exigem revisão de segurança antes do merge.
-        const respostaDoador = await apiFetch('/doadores', {
-          auth: 'none', method: 'POST',
-          body: JSON.stringify({
-            nome: formData.nomeDoador.trim(),
-            email: formData.email.trim().toLowerCase(),
-            whatsapp: formData.telefone,
-            bairro: formData.bairro.trim(),
-          }),
-        })
-        const doadorId = respostaDoador?.dados?.id
-        if (!doadorId) throw new Error('O servidor não retornou o ID do doador.')
-
-        respostaEquipamento = await apiFetch('/equipamentos', {
-          auth: 'none', method: 'POST',
-          body: JSON.stringify({
-            doadorId,
-            categoria: formData.categoria,
-            descricao: descricaoCompleta,
-          }),
-        })
+        if (!enderecoId) throw new Error('Selecione um endereço para solicitar retirada.')
       }
+
+      const respostaEquipamento = await apiFetch('/doadores/me/equipamentos', {
+        auth: 'doador', method: 'POST',
+        body: JSON.stringify({
+          categoria: formData.categoria,
+          descricao: descricaoCompleta,
+          modalidadeEntrega,
+          ...(modalidadeEntrega === 'COLETA_DOMICILIAR' ? { enderecoId } : {}),
+        }),
+      })
 
       const equipamento = respostaEquipamento?.dados
       if (!equipamento?.id || !equipamento?.codigoAcompanhamento) {
@@ -476,32 +416,32 @@ export default function Doacao() {
               <p className="mb-6 text-sm text-slate-300">Carregando seus dados cadastrados...</p>
             )}
 
+            {!temSessao ? (
+              <section className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.06] p-6">
+                <h3 className="text-xl font-bold text-emerald-400">Entre para cadastrar uma doação</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-300">
+                  Para proteger seus dados e acompanhar seu histórico, é necessário entrar
+                  ou criar uma conta. A consulta por código continua pública.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Link to="/login" className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-[#07110b]">Entrar</Link>
+                  <Link to="/cadastro" className="rounded-xl border border-emerald-400/30 px-5 py-3 text-sm font-bold text-emerald-400">Criar conta</Link>
+                </div>
+              </section>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-9">
               {/* 5.2. Dados pessoais: resumo para conta autenticada */}
               <section>
                 <TituloSecao numero="1" titulo="Seus dados" descricao="Informações para entrar em contato." />
-                {temSessao ? (
-                  perfil ? (
-                    <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/[0.06] p-5 text-sm text-slate-200">
-                      <p className="font-bold text-emerald-400">Dados carregados da sua conta</p>
-                      <p className="mt-2">{perfil.nome}</p>
-                      <p>{perfil.email}</p>
-                      <p>{formatarTelefone(perfil.whatsapp)}</p>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-slate-400">Aguardando identificação do doador...</p>
-                  )
-                ) : (
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <Campo label="Nome completo" name="nomeDoador" value={formData.nomeDoador} onChange={handleChange} required placeholder="Digite seu nome completo" />
-                    </div>
-                    <Campo label="E-mail" name="email" type="email" value={formData.email} onChange={handleChange} required placeholder="seuemail@exemplo.com" />
-                    <Campo label="Telefone" name="telefone" value={formData.telefone} onChange={handleChange} required maxLength={15} placeholder="(92) 99999-9999" />
-                    <div className="sm:col-span-2">
-                      <Campo label="CPF" name="cpf" value={formData.cpf} onChange={handleChange} required maxLength={14} placeholder="000.000.000-00" />
-                    </div>
+                {perfil ? (
+                  <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/[0.06] p-5 text-sm text-slate-200">
+                    <p className="font-bold text-emerald-400">Dados carregados da sua conta</p>
+                    <p className="mt-2">{perfil.nome}</p>
+                    <p>{perfil.email}</p>
+                    <p>{formatarTelefone(perfil.whatsapp)}</p>
                   </div>
+                ) : (
+                  <p className="text-sm text-slate-400">Aguardando identificação do doador...</p>
                 )}
               </section>
 
@@ -536,9 +476,34 @@ export default function Doacao() {
 
               <div className="border-t border-white/[0.08]" />
 
-              {/* 5.4. Endereço salvo ou cadastro de novo endereço */}
+              {/* 5.4. Modalidade de entrega */}
               <section>
-                <TituloSecao numero="3" titulo="Endereço" descricao="Confirme o endereço preferencial ou informe outro." />
+                <TituloSecao numero="3" titulo="Forma de entrega" descricao="Escolha como pretende encaminhar seu eletrônico." />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className={`cursor-pointer rounded-xl border p-4 text-sm ${modalidadeEntrega === 'PONTO_COLETA' ? 'border-emerald-400 bg-emerald-400/10' : 'border-white/15 hover:border-emerald-400/30'}`}>
+                    <input type="radio" name="modalidadeEntrega" checked={modalidadeEntrega === 'PONTO_COLETA'}
+                      onChange={() => { setModalidadeEntrega('PONTO_COLETA'); setErro('') }} className="mr-2 accent-emerald-500" />
+                    <strong>Levar a um ponto de coleta</strong>
+                    <p className="mt-2 text-slate-400">Você leva o equipamento a um ponto disponível. Não exige endereço residencial.</p>
+                  </label>
+                  <label className={`cursor-pointer rounded-xl border p-4 text-sm ${modalidadeEntrega === 'COLETA_DOMICILIAR' ? 'border-emerald-400 bg-emerald-400/10' : 'border-white/15 hover:border-emerald-400/30'}`}>
+                    <input type="radio" name="modalidadeEntrega" checked={modalidadeEntrega === 'COLETA_DOMICILIAR'}
+                      onChange={() => { setModalidadeEntrega('COLETA_DOMICILIAR'); setErro('') }} className="mr-2 accent-emerald-500" />
+                    <strong>Solicitar retirada no endereço</strong>
+                    <p className="mt-2 text-slate-400">Sujeita à disponibilidade; isto não agenda nem confirma a coleta.</p>
+                  </label>
+                </div>
+                {modalidadeEntrega === 'PONTO_COLETA' && (
+                  <Link to="/pontos-de-coleta" className="mt-4 inline-block text-sm font-bold text-emerald-400 hover:underline">
+                    Consultar os pontos de coleta →
+                  </Link>
+                )}
+              </section>
+
+              {/* 5.5. Endereço apenas para retirada */}
+              {modalidadeEntrega === 'COLETA_DOMICILIAR' && (
+              <section>
+                <TituloSecao numero="4" titulo="Endereço para retirada" descricao="Selecione o local para solicitar retirada." />
                 {temSessao && (perfil?.enderecos?.length || 0) > 1 && (
                   <div className="mb-5">
                     <label htmlFor="enderecoCadastrado" className="mb-2 block text-sm font-semibold text-slate-300">
@@ -602,10 +567,11 @@ export default function Doacao() {
                   </>
                 )}
               </section>
+              )}
 
-              {/* 5.5. Aviso e ações */}
+              {/* 5.6. Aviso e ações */}
               <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/[0.06] p-4 text-sm leading-6 text-emerald-200">
-                <strong className="text-emerald-400">Importante:</strong> este cadastro registra sua intenção de doar. Para contas autenticadas, o endereço de coleta escolhido será registrado no equipamento e continuará igual mesmo que você edite os endereços do seu perfil. No modo visitante, CPF e endereço completo não são armazenados nesta etapa.
+                <strong className="text-emerald-400">Importante:</strong> este cadastro registra sua intenção de doar. Na entrega em ponto de coleta, não é necessário endereço. A retirada domiciliar é apenas uma solicitação e depende de confirmação da equipe.
               </div>
               <div className="flex flex-col-reverse gap-3 border-t border-white/[0.08] pt-6 sm:flex-row sm:justify-between">
                 <Link to="/" className="inline-flex items-center justify-center rounded-xl border border-white/10 px-6 py-3 text-sm font-bold text-slate-300 hover:border-white/20">Cancelar</Link>
@@ -615,6 +581,7 @@ export default function Doacao() {
                 </button>
               </div>
             </form>
+            )}
           </div>
 
           {/* 5.6. Conteúdo informativo lateral */}

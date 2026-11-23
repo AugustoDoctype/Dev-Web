@@ -13,6 +13,8 @@ const router = Router();
  *   post:
  *     summary: Cadastra um novo equipamento com foto
  *     tags: [Equipamentos]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -41,7 +43,7 @@ const router = Router();
 // ROTA PARA CADASTRAR EQUIPAMENTO (COM FOTO)
 // ==========================================
 // Adicionamos o upload.single('foto') como interceptador
-router.post('/', upload.single('foto'), async (req, res) => {
+router.post('/', verificarToken, upload.single('foto'), async (req, res) => {
   try {
     // 1. O Zod analisa o req.body. Se estiver errado, ele "quebra" o código aqui e pula direto pro catch
     const dadosValidados = criarEquipamentoSchema.parse(req.body);
