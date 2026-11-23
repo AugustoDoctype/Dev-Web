@@ -1,0 +1,257 @@
+/*
+ * E-Ciclo — Refinamento visual das páginas públicas (v1).
+ * Escopo: .ec-polish (Home e telas de confirmação/detalhes não são alteradas).
+ * A classe ec-site com data-ec-theme garante sincronização de tema pelo App.
+ */
+.ec-polish {
+  --ep-page: #08110e;
+  --ep-page-alt: #0d1b15;
+  --ep-surface: #112019;
+  --ep-surface-soft: #15271e;
+  --ep-input: #0b1711;
+  --ep-text: #f0f9f3;
+  --ep-muted: #a6baac;
+  --ep-muted-2: #849d8b;
+  --ep-border: rgba(164, 235, 191, .15);
+  --ep-border-focus: rgba(69, 213, 147, .58);
+  --ep-accent: #34d399;
+  --ep-accent-soft: rgba(36, 208, 137, .11);
+  --ep-card-shadow: 0 20px 55px rgba(0, 0, 0, .15);
+  isolation: isolate;
+  min-height: 100vh;
+  background: var(--ep-page) !important;
+  color: var(--ep-text) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .3s ease, color .3s ease;
+}
+.ec-site[data-ec-theme="claro"] .ec-polish,
+.ec-polish.tema-claro {
+  --ep-page: #f7faf7;
+  --ep-page-alt: #edf6ef;
+  --ep-surface: #ffffff;
+  --ep-surface-soft: #f1f8f3;
+  --ep-input: #ffffff;
+  --ep-text: #172e22;
+  --ep-muted: #4a6555;
+  --ep-muted-2: #587465;
+  --ep-border: rgba(27, 95, 57, .18);
+  --ep-border-focus: rgba(7, 116, 78, .50);
+  --ep-accent: #06764f;
+  --ep-accent-soft: rgba(12, 152, 92, .09);
+  --ep-card-shadow: 0 18px 48px rgba(29, 81, 43, .09);
+  background: var(--ep-page) !important;
+  color: var(--ep-text) !important;
+}
+
+/* Fundos e títulos: mesmo ritmo visual usado na nova Home. */
+.ec-polish :is(main, header, section, article) { min-width: 0; }
+.ec-polish :is(h1, h2, h3) { letter-spacing: -.035em; text-wrap: balance; }
+.ec-polish :is(h1, h2, h3, h4) { color: var(--ep-text); }
+.ec-polish :is(p, li) { overflow-wrap: anywhere; }
+.ec-polish :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid var(--ep-accent) !important;
+  outline-offset: 3px;
+}
+.ec-polish :is(a, button) {
+  transition-property: background-color, border-color, color, box-shadow, opacity, transform;
+  transition-duration: .24s;
+  transition-timing-function: cubic-bezier(.2,.75,.3,1);
+}
+.ec-polish :is(button, a):not(:disabled):hover { text-decoration-thickness: 2px; }
+.ec-polish :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  accent-color: #10b981;
+  background-color: var(--ep-input) !important;
+  border-color: var(--ep-border) !important;
+  color: var(--ep-text) !important;
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+.ec-polish :is(input, select, textarea)::placeholder { color: var(--ep-muted-2) !important; opacity: 1; }
+.ec-polish :is(input, select, textarea):focus { border-color: var(--ep-border-focus) !important; box-shadow: 0 0 0 3px var(--ep-accent-soft); }
+.ec-polish input:disabled, .ec-polish select:disabled, .ec-polish button:disabled { cursor: not-allowed; opacity: .64; }
+.ec-polish input[type="checkbox"], .ec-polish input[type="radio"] { accent-color: #0c9c64; }
+.ec-polish :is(label, legend) { font-weight: 610; }
+.ec-polish :is(hr, fieldset) { border-color: var(--ep-border); }
+
+/* Retificações de cor para componentes herdados com Tailwind embutido. */
+.ec-polish :is([class~="text-white"], [class~="text-slate-100"], [class~="text-slate-200"]) { color: var(--ep-text) !important; }
+.ec-polish :is([class~="text-slate-300"], [class~="text-slate-400"], [class~="text-gray-600"], [class~="text-gray-500"]) { color: var(--ep-muted) !important; }
+.ec-polish :is([class~="text-slate-500"], [class~="text-slate-600"]) { color: var(--ep-muted-2) !important; }
+.ec-polish :is([class~="text-emerald-300"], [class~="text-emerald-400"], [class~="text-emerald-500"]) { color: var(--ep-accent) !important; }
+.ec-polish :is([class~="border-white/10"], [class~="border-white/15"], [class~="border-white/5"], [class~="border-white/[0.08]"], [class~="border-white/[0.07]"], [class~="border-white/[0.06]"], [class~="border-white/[0.09]"], [class~="border-white/[0.12]"]) { border-color: var(--ep-border) !important; }
+.ec-polish :is([class~="bg-[#111b16]"], [class~="bg-[#111c17]"], [class~="bg-[#111d18]"], [class~="bg-[#0d1514]"], [class~="bg-[#101a19]"], [class~="bg-[#101b14]"], [class~="bg-[#101b17]"], [class~="bg-[#0d1510]"], [class~="bg-[#0e1915]"]) { background-color: var(--ep-surface) !important; }
+.ec-polish :is([class~="bg-[#0b110e]"], [class~="bg-[#080e0d]"], [class~="bg-[#0b1311]"], [class~="bg-[#0a100e]"]) { background-color: var(--ep-page) !important; }
+.ec-polish :is([class~="bg-white/[0.02]"], [class~="bg-white/[0.025]"], [class~="bg-white/[0.03]"], [class~="bg-white/[0.035]"], [class~="bg-white/[0.04]"], [class~="bg-white/5"]) { background-color: var(--ep-accent-soft) !important; }
+/* Preserve o contraste do texto de ações verdes em tema claro e escuro. */
+.ec-polish :is(a, button)[class*="bg-emerald-500"],
+.ec-polish :is(a, button)[class*="bg-emerald-400"],
+.ec-polish :is(a, button)[class*="bg-gradient-to-r"][class*="emerald-"] {
+  color: #062419 !important;
+  box-shadow: 0 10px 28px rgba(16, 185, 129, .16);
+}
+.ec-polish :is(a, button)[class*="bg-emerald-500"]:not(:disabled):hover,
+.ec-polish :is(a, button)[class*="bg-emerald-400"]:not(:disabled):hover { box-shadow: 0 16px 36px rgba(16, 185, 129, .25); transform: translateY(-2px); }
+
+/* Hero: gradientes + grade sutil lembrando trilhas da marca Circuito Infinito. */
+.ec-polish--como main > section:first-child,
+.ec-polish--pontos main > section:first-child,
+.ec-polish--doacao > header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-bottom: 1px solid var(--ep-border) !important;
+  background-color: var(--ep-page) !important;
+  background-image: radial-gradient(ellipse at 80% 10%, rgba(16, 185, 129, .18), transparent 52%), linear-gradient(120deg, var(--ep-page), var(--ep-page-alt)) !important;
+}
+.ec-polish--como main > section:first-child::before,
+.ec-polish--pontos main > section:first-child::before,
+.ec-polish--doacao > header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image: linear-gradient(rgba(24, 170, 102, .075) 1px, transparent 1px), linear-gradient(90deg, rgba(24, 170, 102, .075) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: linear-gradient(90deg, transparent, #000 35%, #000);
+}
+.ec-polish--como main > section:first-child h1,
+.ec-polish--pontos main > section:first-child h1,
+.ec-polish--doacao > header h1 { font-size: clamp(2.55rem, 5vw, 4.8rem); line-height: 1.07; font-weight: 840; letter-spacing: -.055em; }
+.ec-polish--como main > section:first-child p,
+.ec-polish--pontos main > section:first-child p,
+.ec-polish--doacao > header p { line-height: 1.8; }
+.ec-polish--como main > section:first-child [class*="rounded-full"],
+.ec-polish--pontos main > section:first-child [class*="rounded-full"],
+.ec-polish--doacao > header [class*="rounded-full"] { border-color: var(--ep-border-focus); }
+
+/* Como Funciona: etapas e benefícios deixam de parecer blocos isolados da Home. */
+.ec-polish--como main > section:not(:first-child) { background-color: var(--ep-page) !important; background-image: none !important; }
+.ec-polish--como main > section:nth-of-type(3) { background-color: var(--ep-page-alt) !important; }
+.ec-polish--como main > section:last-child > div { position: relative; }
+.ec-polish--como main > section:not(:first-child) article,
+.ec-polish--como main > section:not(:first-child) .group {
+  border-color: var(--ep-border) !important;
+  border-radius: 23px;
+  background-color: var(--ep-surface) !important;
+  background-image: none !important;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.ec-polish--como main > section:not(:first-child) .group:hover,
+.ec-polish--como main > section:not(:first-child) article:hover { transform: translateY(-5px); border-color: var(--ep-border-focus) !important; box-shadow: var(--ep-card-shadow); }
+.ec-polish--como footer { border-color: var(--ep-border) !important; background: var(--ep-page-alt) !important; }
+
+/* Pontos de Coleta: cartões e controles do mapa com profundidade consistente. */
+.ec-polish--pontos main > section:nth-of-type(2) { background-color: var(--ep-page-alt) !important; }
+.ec-polish--pontos .pc-card { background: var(--ep-surface) !important; border-color: var(--ep-border) !important; border-radius: 23px; box-shadow: 0 12px 36px rgba(0,0,0,.06); }
+.ec-polish--pontos .pc-card:hover { transform: translateY(-4px); border-color: var(--ep-border-focus) !important; box-shadow: var(--ep-card-shadow); }
+.ec-polish--pontos .pc-icon { background: var(--ep-accent-soft) !important; color: var(--ep-accent); }
+.ec-polish--pontos .pc-card-footer { border-color: var(--ep-border) !important; }
+.ec-polish--pontos .leaflet-container { border-radius: 18px; font-family: inherit; }
+.ec-polish--pontos .leaflet-control-zoom a,
+.ec-polish--pontos .leaflet-popup-content-wrapper,
+.ec-polish--pontos .leaflet-popup-tip { background: var(--ep-surface) !important; color: var(--ep-text) !important; }
+.ec-polish--pontos .leaflet-control-attribution { background: var(--ep-surface) !important; color: var(--ep-muted) !important; }
+.ec-polish--pontos .leaflet-control-attribution a { color: var(--ep-accent) !important; }
+/* Nunca alterar .leaflet-tile: os mapas devem manter suas cores de origem. */
+
+/* Doação: formulário, seletores de modalidade e apoio lateral. */
+.ec-polish--doacao > main { background: var(--ep-page) !important; }
+.ec-polish--doacao > main > div > div:first-child,
+.ec-polish--doacao > main > div > aside > div,
+.ec-polish--doacao > main > div > div:last-child > div {
+  border-color: var(--ep-border) !important;
+  background: var(--ep-surface) !important;
+  box-shadow: 0 14px 42px rgba(0,0,0,.07);
+}
+.ec-polish--doacao form :is(label,legend) { color: var(--ep-text); }
+.ec-polish--doacao form :is(input, textarea, select) { min-height: 46px; border-radius: 12px; }
+.ec-polish--doacao form :is(input[type="radio"],input[type="checkbox"]) { min-height: 0; }
+.ec-polish--doacao form [class*="rounded-2xl"][class*="border"] { border-color: var(--ep-border) !important; }
+.ec-polish--doacao > footer { background: var(--ep-page-alt); border-color: var(--ep-border) !important; }
+
+/* Minhas Doações: acompanhamento e cartões do histórico. */
+.ec-polish--minhas { background: var(--ep-page) !important; }
+.ec-polish--minhas main > div > section,
+.ec-polish--minhas main article { border-color: var(--ep-border) !important; background-color: var(--ep-surface) !important; }
+.ec-polish--minhas main article { border-radius: 22px; transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.ec-polish--minhas main article:hover { transform: translateY(-4px); border-color: var(--ep-border-focus) !important; box-shadow: var(--ep-card-shadow); }
+.ec-polish--minhas main > div > section { box-shadow: var(--ep-card-shadow); }
+.ec-polish--minhas main h1 { font-size: clamp(2.25rem, 4.3vw, 3.5rem); font-weight: 840; }
+
+/* Meu Perfil: cartões, formulários e endereços. */
+.ec-polish--perfil main > section { border: 1px solid var(--ep-border) !important; border-radius: 23px; background: var(--ep-surface) !important; box-shadow: 0 12px 35px rgba(0,0,0,.045); }
+.ec-polish--perfil main > div:first-child { margin-bottom: 2rem; }
+.ec-polish--perfil main h1 { font-size: clamp(2.15rem, 4vw, 3.2rem); font-weight: 840; }
+.ec-polish--perfil main [class*="rounded-xl"][class*="border"] { border-color: var(--ep-border) !important; }
+.ec-polish--perfil main :is(button, a)[class*="bg-emerald"] { border-radius: 13px; }
+
+/* Login e Cadastro: mesma superfície e transições da Home. */
+.ec-polish--login main,
+.ec-polish--cadastro main { background: radial-gradient(ellipse at 5% 12%, rgba(16, 185, 129, .10), transparent 43%), var(--ep-page) !important; }
+.ec-polish--login main > div[class*="grid"],
+.ec-polish--cadastro main > div[class*="grid"] { border-color: var(--ep-border) !important; background-color: var(--ep-surface) !important; border-radius: 26px; box-shadow: var(--ep-card-shadow); }
+.ec-polish--login main section,
+.ec-polish--cadastro main section { background-color: transparent; }
+.ec-polish--login main h1, .ec-polish--cadastro main h1 { font-size: clamp(1.9rem, 3.4vw, 2.9rem); }
+.ec-polish--login main input, .ec-polish--cadastro main input { min-height: 47px; }
+.ec-polish--login footer, .ec-polish--cadastro footer { border-color: var(--ep-border) !important; background: var(--ep-page-alt) !important; }
+
+/* Tema claro de verdade: contraste e superfícies sem overlays escuros residuais. */
+.ec-site[data-ec-theme="claro"] .ec-polish :is(h1,h2,h3,h4) { color: #173126 !important; }
+.ec-site[data-ec-theme="claro"] .ec-polish [class~="text-white"],
+.ec-site[data-ec-theme="claro"] .ec-polish [class~="text-slate-100"],
+.ec-site[data-ec-theme="claro"] .ec-polish [class~="text-slate-200"],
+.ec-site[data-ec-theme="claro"] .ec-polish [class~="text-gray-900"],
+.ec-site[data-ec-theme="claro"] .ec-polish [class~="text-slate-900"] { color: #173126 !important; }
+.ec-site[data-ec-theme="claro"] .ec-polish :is([class~="bg-[#111b16]"], [class~="bg-[#0d1510]"], [class~="bg-[#111c17]"], [class~="bg-[#111d18]"], [class~="bg-[#101b14]"], [class~="bg-[#101b17]"]) { background-color: #fff !important; background-image: none !important; }
+.ec-site[data-ec-theme="claro"] .ec-polish :is([class~="bg-[#0b110e]"], [class~="bg-[#080e0d]"], [class~="bg-[#0b1311]"]) { background-color: #f7faf7 !important; background-image: none !important; }
+.ec-site[data-ec-theme="claro"] .ec-polish :is([class~="bg-white/[0.02]"], [class~="bg-white/[0.025]"], [class~="bg-white/[0.03]"], [class~="bg-white/[0.04]"], [class~="bg-white/5"]) { background-color: var(--ep-accent-soft) !important; }
+.ec-site[data-ec-theme="claro"] .ec-polish :is([class~="text-red-300"], [class~="text-red-400"]) { color: #b42318 !important; }
+.ec-site[data-ec-theme="claro"] .ec-polish :is([class~="bg-red-500/10"], [class~="bg-red-500/[0.08]"]) { background-color: #fff0ed !important; }
+.ec-site[data-ec-theme="claro"] .ec-polish :is([class~="text-[#07110d]"], [class~="text-[#07120b]"]) { color: #052719 !important; }
+.ec-site[data-ec-theme="claro"] .ec-polish :is(a, button)[class*="bg-emerald-"] { color: #062419 !important; }
+.ec-site[data-ec-theme="claro"] .ec-polish--como main > section:first-child,
+.ec-site[data-ec-theme="claro"] .ec-polish--pontos main > section:first-child,
+.ec-site[data-ec-theme="claro"] .ec-polish--doacao > header {
+  background: radial-gradient(ellipse at 84% 0%, rgba(16,185,129,.11), transparent 50%), linear-gradient(125deg, #eff8f0, #fff 65%, #f1faf5) !important;
+}
+.ec-site[data-ec-theme="claro"] .ec-polish--como main > section:first-child :is(h1,h2),
+.ec-site[data-ec-theme="claro"] .ec-polish--pontos main > section:first-child h1,
+.ec-site[data-ec-theme="claro"] .ec-polish--doacao > header h1 { color: #143424 !important; }
+.ec-site[data-ec-theme="claro"] .ec-polish--pontos .leaflet-control-zoom a,
+.ec-site[data-ec-theme="claro"] .ec-polish--pontos .leaflet-popup-content-wrapper,
+.ec-site[data-ec-theme="claro"] .ec-polish--pontos .leaflet-popup-tip { background: white !important; color: #173126 !important; }
+
+/* Um padrão único de entrada e interação, inspirado no Hero da Home. */
+.ec-polish--como main > section:first-child > div:last-child,
+.ec-polish--pontos main > section:first-child > div:last-child,
+.ec-polish--doacao > header > div:last-child,
+.ec-polish--minhas main > div[class*="max-w-5xl"],
+.ec-polish--perfil main > div:first-child,
+.ec-polish--login main > div[class*="grid"],
+.ec-polish--cadastro main > div[class*="grid"] {
+  animation: ec-rise-in .7s cubic-bezier(.2,.75,.3,1) both;
+}
+.ec-polish--como main > section:not(:first-child) :is(article, .group),
+.ec-polish--pontos .pc-card,
+.ec-polish--minhas main article,
+.ec-polish--perfil main > section {
+  transition: transform .26s cubic-bezier(.2,.75,.3,1), box-shadow .26s ease, border-color .26s ease, background-color .26s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ec-polish *, .ec-polish *::before, .ec-polish *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ec-polish :is(article, .pc-card, a, button):hover { transform: none !important; }
+}
+@media (max-width: 640px) {
+  .ec-polish--como main > section:first-child h1,
+  .ec-polish--pontos main > section:first-child h1,
+  .ec-polish--doacao > header h1 { font-size: clamp(2.25rem, 10vw, 3rem); }
+  .ec-polish--como main > section:not(:first-child) { padding-block: 3.7rem; }
+  .ec-polish--pontos .pc-card { border-radius: 18px; }
+  .ec-polish--perfil main > section { border-radius: 18px; }
+}

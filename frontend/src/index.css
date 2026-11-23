@@ -1,1 +1,6 @@
 @import "tailwindcss";
+@import "./styles/variables.css";
+@import "./styles/components.css";
+@import "./styles/animations.css";
+@import "./styles/site-pages.css";
+@import "./styles/admin-eco-tech.css";

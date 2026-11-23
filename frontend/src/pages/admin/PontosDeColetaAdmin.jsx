@@ -440,12 +440,12 @@ export default function PontosDeColetaAdmin() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-300 ${fundoPagina}`}
+      className={`ec-admin ec-admin--pontos ${modoClaro ? 'ec-admin--claro' : 'ec-admin--escuro'} min-h-screen transition-colors duration-300 ${fundoPagina}`}
     >
       {/* Barra lateral para computadores */}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r lg:flex ${
+        className={`ec-admin-sidebar fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r lg:flex ${
           modoClaro
             ? 'border-slate-200 bg-white'
             : 'border-white/5 bg-[#0e1712]'
@@ -458,7 +458,7 @@ export default function PontosDeColetaAdmin() {
           }`}
         >
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-400/10 text-2xl">
-            ♻️
+            <img src="/branding/icon-192.png" width="43" height="43" alt="" />
           </div>
 
           <div>
@@ -558,7 +558,7 @@ export default function PontosDeColetaAdmin() {
         {/* Cabeçalho */}
 
         <header
-          className={`sticky top-0 z-20 border-b backdrop-blur-xl ${
+          className={`ec-admin-topbar sticky top-0 z-20 border-b backdrop-blur-xl ${
             modoClaro
               ? 'border-slate-200 bg-white/90'
               : 'border-white/5 bg-[#0e1712]/90'
@@ -661,7 +661,7 @@ export default function PontosDeColetaAdmin() {
           </nav>
         </header>
 
-        <main className="mx-auto max-w-[1600px] px-5 py-8 sm:px-8 sm:py-10">
+        <main className="ec-admin-main mx-auto max-w-[1600px] px-5 py-8 sm:px-8 sm:py-10">
           {/* Título e ação principal */}
 
           <div className="mb-8 flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
@@ -683,6 +683,7 @@ export default function PontosDeColetaAdmin() {
                 Cadastre, edite e acompanhe os locais de coleta e os materiais
                 que cada ponto recebe.
               </p>
+              <p className="ea-demo-note">Dados demonstrativos, salvos neste navegador</p>
             </div>
 
             <button
@@ -697,7 +698,7 @@ export default function PontosDeColetaAdmin() {
 
           {/* Indicadores */}
 
-          <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <section className="ec-admin-stats mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {[
               {
                 titulo: 'Total de pontos',

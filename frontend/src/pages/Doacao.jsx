@@ -371,7 +371,7 @@ export default function Doacao() {
   // 5. RENDERIZAÇÃO DA PÁGINA
   // ============================================================
   return (
-    <div className="min-h-screen bg-[#0b110e] text-slate-100">
+    <div className="ec-polish ec-polish--doacao min-h-screen bg-[#0b110e] text-slate-100">
       <Navbar />
 
       {/* 5.1. Apresentação da página */}

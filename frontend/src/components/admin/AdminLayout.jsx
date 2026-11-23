@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import AdminIcone from './AdminIcone'
 
 // ============================================================
 // LAYOUT COMPARTILHADO DO PAINEL ADMINISTRATIVO
@@ -36,7 +37,7 @@ export default function AdminLayout({ titulo, descricao, children }) {
     const novoTema = claro ? 'escuro' : 'claro'
     localStorage.setItem('eciclo-tema', novoTema)
     document.documentElement.classList.toggle('dark', novoTema === 'escuro')
-    document.documentElement.style.colorScheme = novoTema
+    document.documentElement.style.colorScheme = novoTema === 'escuro' ? 'dark' : 'light'
     setTema(novoTema)
     window.dispatchEvent(new CustomEvent('eciclo-tema-alterado', { detail: novoTema }))
   }
@@ -52,13 +53,15 @@ export default function AdminLayout({ titulo, descricao, children }) {
   const secundario = claro ? 'text-slate-600' : 'text-slate-400'
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${fundo}`}>
+    <div className={`ec-admin ec-admin--layout ${claro ? 'ec-admin--claro' : 'ec-admin--escuro'} min-h-screen transition-colors duration-300 ${fundo}`}>
       {/* 1. Menu lateral e navegação acessível */}
       <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col lg:flex-row">
-        <aside className={`w-full shrink-0 border-b p-5 lg:w-64 lg:border-b-0 lg:border-r lg:p-7 ${claro ? 'border-slate-200' : 'border-white/10'}`}>
+        <aside className={`ec-admin-sidebar w-full shrink-0 border-b p-5 lg:w-64 lg:border-b-0 lg:border-r lg:p-7 ${claro ? 'border-slate-200' : 'border-white/10'}`}>
           <div className="mb-6">
-            <p className="text-2xl font-black tracking-tight text-emerald-500">♻ E-Ciclo</p>
-            <p className={`mt-1 text-xs font-semibold uppercase tracking-widest ${secundario}`}>Administração</p>
+            <div className="ec-admin-brand">
+              <img src="/branding/icon-192.png" alt="" width="47" height="47" />
+              <div><strong>E-Ciclo<span>.</span></strong><small>ADMINISTRAÇÃO</small></div>
+            </div>
           </div>
           <nav aria-label="Navegação administrativa" className="flex flex-wrap gap-2 lg:flex-col">
             {links.map((link) => (
@@ -67,7 +70,7 @@ export default function AdminLayout({ titulo, descricao, children }) {
                 to={link.to}
                 className={({ isActive }) => `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${isActive ? 'bg-emerald-500/15 text-emerald-500' : claro ? 'text-slate-600 hover:bg-slate-100' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
               >
-                <span aria-hidden="true">{link.icone}</span>{link.nome}
+                <AdminIcone tipo={link.icone} />{link.nome}
               </NavLink>
             ))}
           </nav>
@@ -82,8 +85,8 @@ export default function AdminLayout({ titulo, descricao, children }) {
         </aside>
 
         {/* 2. Conteúdo específico de cada página */}
-        <main className="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:px-10 lg:py-10">
-          <header className="mb-8">
+        <main className="ec-admin-main min-w-0 flex-1 px-4 py-8 sm:px-8 lg:px-10 lg:py-10">
+          <header className="ec-admin-heading mb-8">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-500">Painel administrativo</p>
             <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{titulo}</h1>
             {descricao && <p className={`mt-3 max-w-3xl text-sm leading-6 ${secundario}`}>{descricao}</p>}

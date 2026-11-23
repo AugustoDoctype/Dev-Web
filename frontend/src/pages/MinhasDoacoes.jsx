@@ -221,7 +221,7 @@ async function handleBuscar(event) {
 
   return (
     <div
-      className={`minhas-doacoes-page min-h-screen font-sans transition-colors duration-300 ${
+      className={`ec-polish ec-polish--minhas minhas-doacoes-page min-h-screen font-sans transition-colors duration-300 ${
         modoClaro ? 'tema-claro' : 'tema-escuro'
       }`}
     >

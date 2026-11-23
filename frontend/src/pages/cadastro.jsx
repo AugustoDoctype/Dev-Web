@@ -127,7 +127,7 @@ async function handleSubmit(e) {
 
   return (
     <div
-      className={`cadastro-page flex min-h-screen flex-col font-sans transition-colors duration-300 ${
+      className={`ec-polish ec-polish--cadastro cadastro-page flex min-h-screen flex-col font-sans transition-colors duration-300 ${
         modoClaro
           ? 'tema-claro bg-slate-50 text-slate-800'
           : 'tema-escuro bg-[#0b110e] text-slate-100'

@@ -87,7 +87,7 @@ async function handleLogin(e) {
 
   return (
     <div
-      className={`login-page flex min-h-screen flex-col font-sans transition-colors duration-300 ${
+      className={`ec-polish ec-polish--login login-page flex min-h-screen flex-col font-sans transition-colors duration-300 ${
         modoClaro
           ? 'tema-claro bg-slate-50 text-slate-800'
           : 'tema-escuro bg-[#0b110e] text-slate-100'

@@ -54,7 +54,7 @@ export default function DashboardAdmin() {
           {erro && <p role="alert" className="mb-6 rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-500">{erro} Confira se a sessão é válida e o backend está ligado.</p>}
 
           {/* 2. Indicadores calculados com os dados reais */}
-          <section aria-label="Indicadores de equipamentos" className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <section aria-label="Indicadores de equipamentos" className="ec-admin-stats mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <div className={`rounded-2xl border p-5 ${painel}`}>
               <p className={`text-sm ${secundario}`}>Total de equipamentos</p>
               <p className="mt-3 text-4xl font-black text-emerald-500">{totais.total}</p>

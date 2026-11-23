@@ -335,7 +335,7 @@ export default function MeuPerfil() {
   }
 
   return (
-    <div className={`min-h-screen font-sans ${paginaClass}`}>
+    <div className={`ec-polish ec-polish--perfil min-h-screen font-sans ${paginaClass}`}>
       <Navbar />
 
       <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">

@@ -18,6 +18,7 @@ export default function App() {
 
     // Sincroniza o tema quando ele é alterado em outra página.
     window.addEventListener('eciclo-tema-alterado', atualizarTema)
+    window.addEventListener('storage', atualizarTema)
 
     // Confere o tema salvo ao iniciar o aplicativo.
     atualizarTema()
@@ -27,12 +28,14 @@ export default function App() {
         'eciclo-tema-alterado',
         atualizarTema
       )
+      window.removeEventListener('storage', atualizarTema)
     }
   }, [])
 
   return (
     <div
-      className="min-h-screen transition-colors duration-300"
+      className="ec-site min-h-screen transition-colors duration-300"
+      data-ec-theme={tema}
       style={{
         backgroundColor: tema === 'claro' ? '#f9fafb' : '#0b110e',
         color: tema === 'claro' ? '#111827' : '#f9fafb',
