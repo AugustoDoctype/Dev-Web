@@ -32,7 +32,7 @@ export default function DoacoesAdmin() {
       {({ claro, painel, secundario }) => (
         <>
           {/* 1. Indicadores e atualização */}
-          <section className="mb-6 grid gap-4 sm:grid-cols-3">
+          <section className="ec-admin-stats mb-6 grid gap-4 sm:grid-cols-3">
             <div className={`rounded-2xl border p-5 ${painel}`}>
               <p className={`text-sm ${secundario}`}>Total de equipamentos</p>
               <p className="mt-2 text-3xl font-black text-emerald-500">{doacoes.length}</p>

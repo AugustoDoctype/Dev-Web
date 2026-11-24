@@ -1,3 +1,4 @@
+import { apiFetch } from '../services/api'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/public/Navbar'
@@ -7,6 +8,7 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const [tema, setTema] = useState(() =>
     localStorage.getItem('eciclo-tema') === 'claro' ? 'claro' : 'escuro'
@@ -14,7 +16,7 @@ export default function Login() {
 
   const modoClaro = tema === 'claro'
 
-  
+
 useEffect(() => {
   const atualizarTema = (evento) => {
     const novoTema =
@@ -33,48 +35,59 @@ useEffect(() => {
   }
 }, [])
 
-  const handleLogin = (e) => {
-    e.preventDefault()
-    setErro('')
 
-    // 1. Verificação de Perfil Administrador
-    if (email === 'admin@eciclo.com' && senha === 'admin123') {
-      localStorage.setItem('adminToken', 'mock-token-admin-123')
-      localStorage.setItem(
-        'userPerfil',
-        JSON.stringify({ nome: 'Administrador', tipo: 'ADMIN' })
+async function handleLogin(e) {
+  e.preventDefault()
+
+  if (loading) return
+
+  setErro('')
+  setLoading(true)
+
+  try {
+    // Autenticação real do doador.
+    const resposta = await apiFetch('/doador-auth/login', {
+      method: 'POST',
+      auth: 'none',
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        senha,
+      }),
+    })
+
+    if (!resposta?.token || !resposta?.dados?.id) {
+      throw new Error(
+        'O servidor não retornou uma sessão válida.'
       )
-      navigate('/admin/dashboard')
-      return
     }
 
-    // 2. Verificação de Usuário Comum no LocalStorage
-    const usuarios = JSON.parse(localStorage.getItem('mock_usuarios') || '[]')
+    // Armazena a sessão recebida da API.
+    localStorage.setItem('doadorToken', resposta.token)
 
-    const usuarioEncontrado = usuarios.find(
-      (u) => u.email === email && u.senha === senha
+    localStorage.setItem(
+      'doadorPerfil',
+      JSON.stringify(resposta.dados)
     )
 
-    if (usuarioEncontrado) {
-      localStorage.setItem('userToken', 'mock-token-user')
-      localStorage.setItem(
-        'userPerfil',
-        JSON.stringify({
-          nome: usuarioEncontrado.nome,
-          email: usuarioEncontrado.email,
-          tipo: 'USER',
-        })
-      )
-      navigate('/minhas-doacoes')
-      return
-    }
+    // Elimina a sessão demonstrativa antiga.
+    localStorage.removeItem('userToken')
+    localStorage.removeItem('userPerfil')
+    window.dispatchEvent(
+    new Event('eciclo-auth-alterado')
+    )
 
-    setErro('E-mail ou senha incorretos.')
+    navigate('/minhas-doacoes', { replace: true })
+  } catch (error) {
+    setErro(error.message || 'Não foi possível entrar.')
+  } finally {
+    setLoading(false)
   }
+}
+
 
   return (
     <div
-      className={`login-page flex min-h-screen flex-col font-sans transition-colors duration-300 ${
+      className={`ec-polish ec-polish--login login-page flex min-h-screen flex-col font-sans transition-colors duration-300 ${
         modoClaro
           ? 'tema-claro bg-slate-50 text-slate-800'
           : 'tema-escuro bg-[#0b110e] text-slate-100'
@@ -259,9 +272,10 @@ useEffect(() => {
 
               <button
                 type="submit"
+                disabled={loading}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-[#07110b] shadow-lg shadow-emerald-500/10 transition hover:bg-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/20"
               >
-                Entrar na conta
+               {loading ? 'Entrando...' : 'Entrar na conta'}
                 <span aria-hidden="true">→</span>
               </button>
             </form>

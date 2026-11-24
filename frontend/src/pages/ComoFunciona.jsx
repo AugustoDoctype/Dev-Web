@@ -124,7 +124,7 @@ export default function ComoFunciona() {
   }
 
   return (
-    <div className={`min-h-screen font-sans transition-colors duration-300 ${cores.pagina}`}>
+    <div className={`ec-polish ec-polish--como min-h-screen font-sans transition-colors duration-300 ${cores.pagina}`}>
       <Navbar />
 
       <main>

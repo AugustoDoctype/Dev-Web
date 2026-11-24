@@ -5,7 +5,7 @@ import { verificarToken } from '../middlewares/auth.js';
 const router = Router();
 
 // Rota para CADASTRAR um novo doador
-router.post('/', async (req, res) => {
+router.post('/', verificarToken, async (req, res) => {
   try {
     // 1. Extrai todos os campos, incluindo o email
     const { nome, email, whatsapp, bairro } = req.body;

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/public/Navbar'
 import { apiFetch } from '../services/api'
@@ -10,7 +10,6 @@ const ESTADO_INICIAL = {
   nomeDoador: '',
   email: '',
   telefone: '',
-  cpf: '',
   equipamento: '',
   categoria: '',
   condicao: '',
@@ -50,31 +49,6 @@ function somenteDigitos(valor) {
   return valor.replace(/\D/g, '')
 }
 
-function formatarCPF(valor) {
-  return somenteDigitos(valor)
-    .slice(0, 11)
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
-}
-
-function cpfValido(valor) {
-  const cpf = somenteDigitos(valor)
-  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false
-
-  for (let tamanho = 9; tamanho <= 10; tamanho += 1) {
-    const soma = [...cpf.slice(0, tamanho)].reduce(
-      (total, digito, indice) => total + Number(digito) * (tamanho + 1 - indice),
-      0
-    )
-    const resto = (soma * 10) % 11
-    const verificador = resto === 10 ? 0 : resto
-    if (verificador !== Number(cpf[tamanho])) return false
-  }
-
-  return true
-}
-
 function formatarTelefone(valor) {
   const numeros = somenteDigitos(valor).slice(0, 11)
   if (numeros.length <= 10) {
@@ -91,20 +65,13 @@ function formatarCEP(valor) {
   return somenteDigitos(valor).slice(0, 8).replace(/(\d{5})(\d)/, '$1-$2')
 }
 
-function validarFormulario(dados) {
-  if (dados.nomeDoador.trim().length < 3) return 'Informe o nome completo do doador.'
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email.trim())) {
-    return 'Informe um e-mail válido.'
-  }
-  if (![10, 11].includes(somenteDigitos(dados.telefone).length)) {
-    return 'Informe um telefone com DDD válido.'
-  }
-  if (!cpfValido(dados.cpf)) return 'Informe um CPF válido.'
+function validarFormulario(dados, { precisaEndereco }) {
   if (dados.equipamento.trim().length < 3) return 'Informe o nome do equipamento.'
   if (!CATEGORIAS.includes(dados.categoria)) return 'Selecione uma categoria válida.'
   if (!CONDICOES.some((item) => item.valor === dados.condicao)) {
     return 'Selecione a condição do equipamento.'
   }
+  if (!precisaEndereco) return null
   if (somenteDigitos(dados.cep).length !== 8) return 'Informe um CEP com 8 dígitos.'
   if (!dados.logradouro.trim() || !dados.numero.trim() || !dados.bairro.trim()) {
     return 'Preencha o endereço, o número e o bairro.'
@@ -170,12 +137,104 @@ export default function Doacao() {
   const [erro, setErro] = useState('')
   const consultaCepRef = useRef(0)
 
+  // 4.0. Conta autenticada e endereço de referência do perfil.
+  const [temSessao] = useState(() => Boolean(localStorage.getItem('doadorToken')))
+  const [perfil, setPerfil] = useState(null)
+  const [erroPerfil, setErroPerfil] = useState('')
+  const [carregandoPerfil, setCarregandoPerfil] = useState(temSessao)
+  const [enderecoSelecionado, setEnderecoSelecionado] = useState(null)
+  const [editarEndereco, setEditarEndereco] = useState(false)
+  const [modalidadeEntrega, setModalidadeEntrega] = useState('PONTO_COLETA')
+
+  useEffect(() => {
+    if (!temSessao) return
+    let ativo = true
+
+    async function carregarPerfil() {
+      try {
+        const resposta = await apiFetch('/doadores/me', { auth: 'doador' })
+        if (!ativo) return
+        const dados = resposta?.dados
+        if (!dados?.id) throw new Error('Perfil de doador não encontrado.')
+
+        const endereco = dados.enderecos?.find((item) => item.preferencial)
+          || dados.enderecos?.[0] || null
+        setPerfil(dados)
+        setEnderecoSelecionado(endereco)
+        setFormData((anterior) => ({
+          ...anterior,
+          nomeDoador: dados.nome || '',
+          email: dados.email || '',
+          telefone: formatarTelefone(dados.whatsapp || ''),
+          ...(endereco ? {
+            cep: formatarCEP(endereco.cep),
+            logradouro: endereco.logradouro,
+            numero: endereco.numero,
+            bairro: endereco.bairro,
+            cidade: endereco.cidade,
+            estado: endereco.estado,
+          } : {}),
+        }))
+        setEditarEndereco(!endereco)
+      } catch (error) {
+        if (ativo) setErroPerfil(error.message || 'Não foi possível carregar o seu perfil.')
+      } finally {
+        if (ativo) setCarregandoPerfil(false)
+      }
+    }
+    carregarPerfil()
+    return () => { ativo = false }
+  }, [temSessao])
+
+  const precisaEndereco = modalidadeEntrega === 'COLETA_DOMICILIAR'
+    && (!enderecoSelecionado || editarEndereco)
+
+  function restaurarEndereco() {
+    if (!enderecoSelecionado) return
+    setFormData((anterior) => ({
+      ...anterior,
+      cep: formatarCEP(enderecoSelecionado.cep),
+      logradouro: enderecoSelecionado.logradouro,
+      numero: enderecoSelecionado.numero,
+      bairro: enderecoSelecionado.bairro,
+      cidade: enderecoSelecionado.cidade,
+      estado: enderecoSelecionado.estado,
+    }))
+    setEditarEndereco(false)
+    setErro('')
+  }
+
+  // Seleciona outro endereço existente sem mudar a preferência do perfil.
+  function selecionarEnderecoCadastrado(event) {
+    const endereco = perfil?.enderecos?.find((item) => item.id === event.target.value)
+    if (!endereco) return
+    setEnderecoSelecionado(endereco)
+    setFormData((anterior) => ({
+      ...anterior,
+      cep: formatarCEP(endereco.cep),
+      logradouro: endereco.logradouro,
+      numero: endereco.numero,
+      bairro: endereco.bairro,
+      cidade: endereco.cidade,
+      estado: endereco.estado,
+    }))
+    setEditarEndereco(false)
+    setErro('')
+  }
+
+  function enderecoMudou() {
+    if (!enderecoSelecionado) return true
+    return somenteDigitos(formData.cep) !== somenteDigitos(enderecoSelecionado.cep)
+      || ['logradouro', 'numero', 'bairro', 'cidade', 'estado'].some(
+        (campo) => formData[campo].trim() !== String(enderecoSelecionado[campo] || '').trim()
+      )
+  }
+
   // 4.1. Atualização dos campos e aplicação das máscaras
   function handleChange(event) {
     const { name, value } = event.target
     let valor = value
 
-    if (name === 'cpf') valor = formatarCPF(value)
     if (name === 'telefone') valor = formatarTelefone(value)
     if (name === 'cep') {
       valor = formatarCEP(value)
@@ -223,12 +282,16 @@ export default function Doacao() {
     }
   }
 
-  // 4.3. Cadastro: primeiro o doador, depois o equipamento
+  // 4.3. Cadastro: a sessão identifica o doador, nunca o ID enviado pelo navegador.
   async function handleSubmit(event) {
     event.preventDefault()
-    if (loading || buscandoCep) return
+    if (!temSessao) {
+      setErro('Entre na sua conta para cadastrar um equipamento.')
+      return
+    }
+    if (loading || buscandoCep || carregandoPerfil || !perfil) return
 
-    const mensagemValidacao = validarFormulario(formData)
+    const mensagemValidacao = validarFormulario(formData, { precisaEndereco })
     if (mensagemValidacao) {
       setErro(mensagemValidacao)
       return
@@ -236,42 +299,53 @@ export default function Doacao() {
 
     setErro('')
     setLoading(true)
-
     try {
-      // A API atual não possui POST /doacoes. O cadastro exige duas operações.
-      const respostaDoador = await apiFetch('/doadores', {
-        method: 'POST',
-        body: JSON.stringify({
-          nome: formData.nomeDoador.trim(),
-          email: formData.email.trim().toLowerCase(),
-          whatsapp: formData.telefone,
-          bairro: formData.bairro.trim(),
-        }),
-      })
-
-      const doadorId = respostaDoador?.dados?.id
-      if (!doadorId) throw new Error('O servidor não retornou o ID do doador.')
-
-      // Nome e condição entram na descrição porque o banco ainda não tem colunas próprias.
+      // Nome e condição entram na descrição: a tabela ainda não tem colunas próprias.
       const descricaoCompleta = [
         formData.equipamento.trim(),
         formData.descricao.trim(),
         `Condição: ${formData.condicao}`,
       ].filter(Boolean).join(' - ')
+      // Criação autenticada: o JWT identifica o titular; não enviamos doadorId.
+      let enderecoId
+      if (modalidadeEntrega === 'COLETA_DOMICILIAR') {
+        enderecoId = enderecoSelecionado?.id || null
+        if (precisaEndereco && enderecoMudou()) {
+          const respostaEndereco = await apiFetch('/doadores/me/enderecos', {
+            auth: 'doador', method: 'POST',
+            body: JSON.stringify({
+              cep: somenteDigitos(formData.cep),
+              logradouro: formData.logradouro.trim(),
+              numero: formData.numero.trim(),
+              bairro: formData.bairro.trim(),
+              cidade: formData.cidade.trim(),
+              estado: formData.estado.trim().toUpperCase(),
+              preferencial: true,
+            }),
+          })
+          if (!respostaEndereco?.dados?.id) {
+            throw new Error('O servidor não confirmou o endereço.')
+          }
+          enderecoId = respostaEndereco.dados.id
+          setEnderecoSelecionado(respostaEndereco.dados)
+          setEditarEndereco(false)
+        }
+        if (!enderecoId) throw new Error('Selecione um endereço para solicitar retirada.')
+      }
 
-      const respostaEquipamento = await apiFetch('/equipamentos', {
-        method: 'POST',
+      const respostaEquipamento = await apiFetch('/doadores/me/equipamentos', {
+        auth: 'doador', method: 'POST',
         body: JSON.stringify({
-          doadorId,
           categoria: formData.categoria,
           descricao: descricaoCompleta,
-          status: 'PENDENTE',
+          modalidadeEntrega,
+          ...(modalidadeEntrega === 'COLETA_DOMICILIAR' ? { enderecoId } : {}),
         }),
       })
 
       const equipamento = respostaEquipamento?.dados
-      if (!equipamento?.id) {
-        throw new Error('O servidor não confirmou o cadastro do equipamento.')
+      if (!equipamento?.id || !equipamento?.codigoAcompanhamento) {
+        throw new Error('O servidor não confirmou o código de acompanhamento.')
       }
 
       navigate('/confirmacao', {
@@ -297,7 +371,7 @@ export default function Doacao() {
   // 5. RENDERIZAÇÃO DA PÁGINA
   // ============================================================
   return (
-    <div className="min-h-screen bg-[#0b110e] text-slate-100">
+    <div className="ec-polish ec-polish--doacao min-h-screen bg-[#0b110e] text-slate-100">
       <Navbar />
 
       {/* 5.1. Apresentação da página */}
@@ -332,26 +406,43 @@ export default function Doacao() {
               </p>
             </div>
 
-            {erro && (
+            {(erroPerfil || erro) && (
               <div role="alert" className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                {erro}
+                {erroPerfil || erro}
+                {erroPerfil && <p className="mt-2"><Link className="underline" to="/login">Entrar novamente</Link></p>}
               </div>
             )}
+            {carregandoPerfil && (
+              <p className="mb-6 text-sm text-slate-300">Carregando seus dados cadastrados...</p>
+            )}
 
-            <form onSubmit={handleSubmit} className="space-y-9">
-              {/* 5.2. Identificação do doador */}
-              <section>
-                <TituloSecao numero="1" titulo="Seus dados" descricao="Precisamos dessas informações para entrar em contato." />
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <Campo label="Nome completo" name="nomeDoador" value={formData.nomeDoador} onChange={handleChange} required placeholder="Digite seu nome completo" />
-                  </div>
-                  <Campo label="E-mail" name="email" type="email" value={formData.email} onChange={handleChange} required placeholder="seuemail@exemplo.com" />
-                  <Campo label="Telefone" name="telefone" value={formData.telefone} onChange={handleChange} required maxLength={15} placeholder="(92) 99999-9999" />
-                  <div className="sm:col-span-2">
-                    <Campo label="CPF" name="cpf" value={formData.cpf} onChange={handleChange} required maxLength={14} placeholder="000.000.000-00" />
-                  </div>
+            {!temSessao ? (
+              <section className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.06] p-6">
+                <h3 className="text-xl font-bold text-emerald-400">Entre para cadastrar uma doação</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-300">
+                  Para proteger seus dados e acompanhar seu histórico, é necessário entrar
+                  ou criar uma conta. A consulta por código continua pública.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Link to="/login" className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-[#07110b]">Entrar</Link>
+                  <Link to="/cadastro" className="rounded-xl border border-emerald-400/30 px-5 py-3 text-sm font-bold text-emerald-400">Criar conta</Link>
                 </div>
+              </section>
+            ) : (
+            <form onSubmit={handleSubmit} className="space-y-9">
+              {/* 5.2. Dados pessoais: resumo para conta autenticada */}
+              <section>
+                <TituloSecao numero="1" titulo="Seus dados" descricao="Informações para entrar em contato." />
+                {perfil ? (
+                  <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/[0.06] p-5 text-sm text-slate-200">
+                    <p className="font-bold text-emerald-400">Dados carregados da sua conta</p>
+                    <p className="mt-2">{perfil.nome}</p>
+                    <p>{perfil.email}</p>
+                    <p>{formatarTelefone(perfil.whatsapp)}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-400">Aguardando identificação do doador...</p>
+                )}
               </section>
 
               <div className="border-t border-white/[0.08]" />
@@ -385,38 +476,112 @@ export default function Doacao() {
 
               <div className="border-t border-white/[0.08]" />
 
-              {/* 5.4. Endereço e busca de CEP */}
+              {/* 5.4. Modalidade de entrega */}
               <section>
-                <TituloSecao numero="3" titulo="Endereço" descricao="Informe o endereço relacionado à sua doação." />
-                <div className="mb-5 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                  <Campo label="CEP" name="cep" value={formData.cep} onChange={handleChange} required maxLength={9} placeholder="00000-000" />
-                  <button type="button" onClick={buscarCep} disabled={buscandoCep || loading} className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-5 py-3 text-sm font-bold text-emerald-400 transition hover:bg-emerald-400/20 disabled:opacity-60">
-                    {buscandoCep ? 'Consultando...' : 'Buscar CEP'}
-                  </button>
+                <TituloSecao numero="3" titulo="Forma de entrega" descricao="Escolha como pretende encaminhar seu eletrônico." />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className={`cursor-pointer rounded-xl border p-4 text-sm ${modalidadeEntrega === 'PONTO_COLETA' ? 'border-emerald-400 bg-emerald-400/10' : 'border-white/15 hover:border-emerald-400/30'}`}>
+                    <input type="radio" name="modalidadeEntrega" checked={modalidadeEntrega === 'PONTO_COLETA'}
+                      onChange={() => { setModalidadeEntrega('PONTO_COLETA'); setErro('') }} className="mr-2 accent-emerald-500" />
+                    <strong>Levar a um ponto de coleta</strong>
+                    <p className="mt-2 text-slate-400">Você leva o equipamento a um ponto disponível. Não exige endereço residencial.</p>
+                  </label>
+                  <label className={`cursor-pointer rounded-xl border p-4 text-sm ${modalidadeEntrega === 'COLETA_DOMICILIAR' ? 'border-emerald-400 bg-emerald-400/10' : 'border-white/15 hover:border-emerald-400/30'}`}>
+                    <input type="radio" name="modalidadeEntrega" checked={modalidadeEntrega === 'COLETA_DOMICILIAR'}
+                      onChange={() => { setModalidadeEntrega('COLETA_DOMICILIAR'); setErro('') }} className="mr-2 accent-emerald-500" />
+                    <strong>Solicitar retirada no endereço</strong>
+                    <p className="mt-2 text-slate-400">Sujeita à disponibilidade; isto não agenda nem confirma a coleta.</p>
+                  </label>
                 </div>
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <Campo label="Logradouro" name="logradouro" value={formData.logradouro} onChange={handleChange} required placeholder="Rua, avenida..." />
-                  </div>
-                  <Campo label="Número" name="numero" value={formData.numero} onChange={handleChange} required placeholder="Número ou S/N" />
-                  <Campo label="Bairro" name="bairro" value={formData.bairro} onChange={handleChange} required placeholder="Seu bairro" />
-                  <Campo label="Cidade" name="cidade" value={formData.cidade} onChange={handleChange} required placeholder="Sua cidade" />
-                  <Campo label="Estado (UF)" name="estado" value={formData.estado} onChange={handleChange} required maxLength={2} placeholder="Ex.: AM" />
-                </div>
+                {modalidadeEntrega === 'PONTO_COLETA' && (
+                  <Link to="/pontos-de-coleta" className="mt-4 inline-block text-sm font-bold text-emerald-400 hover:underline">
+                    Consultar os pontos de coleta →
+                  </Link>
+                )}
               </section>
 
-              {/* 5.5. Aviso e ações */}
+              {/* 5.5. Endereço apenas para retirada */}
+              {modalidadeEntrega === 'COLETA_DOMICILIAR' && (
+              <section>
+                <TituloSecao numero="4" titulo="Endereço para retirada" descricao="Selecione o local para solicitar retirada." />
+                {temSessao && (perfil?.enderecos?.length || 0) > 1 && (
+                  <div className="mb-5">
+                    <label htmlFor="enderecoCadastrado" className="mb-2 block text-sm font-semibold text-slate-300">
+                      Selecionar endereço cadastrado
+                    </label>
+                    <select
+                      id="enderecoCadastrado"
+                      value={enderecoSelecionado?.id || ''}
+                      onChange={selecionarEnderecoCadastrado}
+                      className={CLASSE_CAMPO}
+                      disabled={loading}
+                    >
+                      <option value="" disabled>Selecione um endereço</option>
+                      {perfil.enderecos.map((endereco) => (
+                        <option key={endereco.id} value={endereco.id}>
+                          {endereco.logradouro}, {endereco.numero} — {endereco.bairro} ({endereco.cidade}/{endereco.estado})
+                          {endereco.preferencial ? ' • Preferencial' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {temSessao && enderecoSelecionado && !editarEndereco ? (
+                  <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/[0.06] p-5 text-sm text-slate-200">
+                    <p className="font-bold text-emerald-400">Endereço salvo</p>
+                    <p className="mt-2">{enderecoSelecionado.logradouro}, {enderecoSelecionado.numero}</p>
+                    <p>{enderecoSelecionado.bairro} — {enderecoSelecionado.cidade}/{enderecoSelecionado.estado}</p>
+                    <p>CEP: {formatarCEP(enderecoSelecionado.cep)}</p>
+                    <button type="button" onClick={() => setEditarEndereco(true)}
+                      className="mt-4 rounded-lg border border-emerald-400/30 px-4 py-2 font-semibold text-emerald-400 hover:bg-emerald-500/10">
+                      Usar outro endereço
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {temSessao && (
+                      <p className="mb-4 text-sm text-slate-400">{enderecoSelecionado
+                        ? 'Ao alterar os dados, um novo endereço preferencial será salvo no seu perfil.'
+                        : 'Este será seu primeiro endereço salvo no perfil.'}</p>
+                    )}
+                    <div className="mb-5 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                      <Campo label="CEP" name="cep" value={formData.cep} onChange={handleChange} required maxLength={9} placeholder="00000-000" />
+                      <button type="button" onClick={buscarCep} disabled={buscandoCep || loading} className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-5 py-3 text-sm font-bold text-emerald-400 transition hover:bg-emerald-400/20 disabled:opacity-60">
+                        {buscandoCep ? 'Consultando...' : 'Buscar CEP'}
+                      </button>
+                    </div>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <div className="sm:col-span-2">
+                        <Campo label="Logradouro" name="logradouro" value={formData.logradouro} onChange={handleChange} required placeholder="Rua, avenida..." />
+                      </div>
+                      <Campo label="Número" name="numero" value={formData.numero} onChange={handleChange} required placeholder="Número ou S/N" />
+                      <Campo label="Bairro" name="bairro" value={formData.bairro} onChange={handleChange} required placeholder="Seu bairro" />
+                      <Campo label="Cidade" name="cidade" value={formData.cidade} onChange={handleChange} required placeholder="Sua cidade" />
+                      <Campo label="Estado (UF)" name="estado" value={formData.estado} onChange={handleChange} required maxLength={2} placeholder="Ex.: AM" />
+                    </div>
+                    {temSessao && enderecoSelecionado && (
+                      <button type="button" onClick={restaurarEndereco} className="mt-4 text-sm font-semibold text-emerald-400 hover:underline">
+                        Cancelar alteração e usar endereço salvo
+                      </button>
+                    )}
+                  </>
+                )}
+              </section>
+              )}
+
+              {/* 5.6. Aviso e ações */}
               <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/[0.06] p-4 text-sm leading-6 text-emerald-200">
-                <strong className="text-emerald-400">Importante:</strong> este cadastro registra sua intenção de doar. Nesta versão, o banco armazena apenas nome, e-mail, telefone, bairro e os dados básicos do equipamento. CPF e endereço completo não são armazenados.
+                <strong className="text-emerald-400">Importante:</strong> este cadastro registra sua intenção de doar. Na entrega em ponto de coleta, não é necessário endereço. A retirada domiciliar é apenas uma solicitação e depende de confirmação da equipe.
               </div>
               <div className="flex flex-col-reverse gap-3 border-t border-white/[0.08] pt-6 sm:flex-row sm:justify-between">
                 <Link to="/" className="inline-flex items-center justify-center rounded-xl border border-white/10 px-6 py-3 text-sm font-bold text-slate-300 hover:border-white/20">Cancelar</Link>
-                <button type="submit" disabled={loading || buscandoCep} className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-3 text-sm font-bold text-[#07110b] transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60">
+                <button type="submit" disabled={loading || buscandoCep || carregandoPerfil || (temSessao && !perfil)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-3 text-sm font-bold text-[#07110b] transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60">
                   {loading ? 'Enviando doação...' : 'Enviar cadastro'}
                   {!loading && <span aria-hidden="true">→</span>}
                 </button>
               </div>
             </form>
+            )}
           </div>
 
           {/* 5.6. Conteúdo informativo lateral */}

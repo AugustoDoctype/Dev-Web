@@ -43,6 +43,18 @@ export default function DetalhesDoacao() {
                 <div className="mt-4"><StatusBadge status={equipamento.status} claro={claro} /></div>
                 <dl className={`mt-8 grid gap-6 text-sm sm:grid-cols-2 ${secundario}`}>
                   <div><dt className="font-bold text-emerald-500">Categoria</dt><dd className="mt-1">{equipamento.categoria}</dd></div>
+                  <div><dt className="font-bold text-emerald-500">Forma de entrega</dt>
+                    <dd className="mt-1">{equipamento.modalidadeEntrega === 'PONTO_COLETA' ? 'Entrega em ponto de coleta' : equipamento.modalidadeEntrega === 'COLETA_DOMICILIAR' ? 'Retirada solicitada' : 'Não informada (registro antigo)'}</dd>
+                  </div>
+                  {equipamento.modalidadeEntrega === 'COLETA_DOMICILIAR' && equipamento.enderecoColetaLogradouro && (
+                    <div className="sm:col-span-2">
+                      <dt className="font-bold text-emerald-500">Endereço solicitado para retirada</dt>
+                      <dd className="mt-1">
+                        {equipamento.enderecoColetaLogradouro}, {equipamento.enderecoColetaNumero} — {equipamento.enderecoColetaBairro}, {equipamento.enderecoColetaCidade}/{equipamento.enderecoColetaEstado} — CEP {equipamento.enderecoColetaCep}
+                      </dd>
+                      <p className="mt-2 text-xs">A solicitação não garante agendamento de coleta.</p>
+                    </div>
+                  )}
                   <div><dt className="font-bold text-emerald-500">Cadastrado em</dt><dd className="mt-1">{formatarData(equipamento.criadoEm)}</dd></div>
                   <div><dt className="font-bold text-emerald-500">Atualizado em</dt><dd className="mt-1">{formatarData(equipamento.atualizadoEm)}</dd></div>
                   <div><dt className="font-bold text-emerald-500">Destino final</dt><dd className="mt-1">{equipamento.destinoFinal || 'Ainda não definido'}</dd></div>

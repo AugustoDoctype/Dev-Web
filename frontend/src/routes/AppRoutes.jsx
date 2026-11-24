@@ -8,6 +8,7 @@ import PontosDeColeta from '../pages/PontosDeColeta'
 import MinhasDoacoes from '../pages/MinhasDoacoes'
 import DetalhesMinhaDoacao from '../pages/DetalhesMinhaDoacao'
 import Confirmacao from '../pages/Confirmacao'
+import MeuPerfil from '../pages/MeuPerfil'
 
 // Páginas de autenticação
 import Login from '../pages/Login'
@@ -37,6 +38,7 @@ export default function AppRoutes() {
       />
 
       <Route path="/minhas-doacoes" element={<MinhasDoacoes />} />
+      <Route path="/meu-perfil" element={<MeuPerfil />} />
 
       <Route
         path="/minhas-doacoes/:id"

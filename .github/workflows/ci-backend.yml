@@ -1,10 +1,8 @@
-
 name: Backend CI
 
 on:
   push:
     branches: ["main", "master"]
-
   pull_request:
     branches: ["main", "master"]
 
@@ -19,13 +17,13 @@ jobs:
 
     env:
       DATABASE_URL: "file:./ci.db"
+      # Exclusivamente para testes. Nunca usar em produção.
+      JWT_SECRET: "ci-only-test-secret-do-not-use-in-production-2026-eciclo"
 
     steps:
-      # Baixa os arquivos do repositório
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      # Configura o Node.js e o cache do npm
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
@@ -33,22 +31,20 @@ jobs:
           cache: "npm"
           cache-dependency-path: "backend/package-lock.json"
 
-      # Instala as dependências do backend
       - name: Instalar dependências
         run: npm ci
 
-      # Verifica a estrutura do schema Prisma
       - name: Validar schema Prisma
         run: npx prisma validate
 
-      # Gera o Prisma Client
       - name: Gerar Prisma Client
         run: npx prisma generate
 
-      # Cria um banco temporário e aplica as migrations
       - name: Aplicar migrations
         run: npx prisma migrate deploy
 
-      # Verifica se todas as migrations foram aplicadas
       - name: Verificar migrations
         run: npx prisma migrate status
+
+      - name: Executar testes automatizados
+        run: npm test

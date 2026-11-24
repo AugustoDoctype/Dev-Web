@@ -364,7 +364,7 @@ const pontoSelecionadoVisivel =
 
   return (
     <div
-      className={`pontos-page min-h-screen overflow-x-hidden transition-colors duration-300 ${
+      className={`ec-polish ec-polish--pontos pontos-page min-h-screen overflow-x-hidden transition-colors duration-300 ${
         modoClaro ? 'tema-claro' : 'tema-escuro'
       }`}
     >

@@ -51,3 +51,39 @@
 .tema-claro img {
   filter: none;
 }
+
+/* EC-CICLO-TOKENS-V2 — início */
+/* Tokens sem !important para novos componentes. O CSS legado permanece por compatibilidade. */
+.tema-claro {
+  --ec-brand: #076d4f;
+  --ec-brand-bright: #067453;
+  --ec-brand-soft: #047857;
+  --ec-page: #f8fbf8;
+  --ec-page-alt: #f0f7f2;
+  --ec-surface: #ffffff;
+  --ec-surface-hover: #f3faf5;
+  --ec-text: #172c20;
+  --ec-muted: #51685a;
+  --ec-border: rgba(29, 92, 58, .15);
+  --ec-border-active: rgba(8, 127, 88, .36);
+  --ec-primary-text: #ffffff;
+  --ec-highlight: rgba(16, 185, 129, .09);
+  --ec-shadow: 0 22px 58px rgba(21, 71, 41, .08);
+}
+.tema-escuro {
+  --ec-brand: #10b981;
+  --ec-brand-bright: #34d399;
+  --ec-brand-soft: #b4f9d7;
+  --ec-page: #08110e;
+  --ec-page-alt: #0c1712;
+  --ec-surface: #111f18;
+  --ec-surface-hover: #17291f;
+  --ec-text: #f0f9f3;
+  --ec-muted: #a4b8ac;
+  --ec-border: rgba(175, 245, 202, .12);
+  --ec-border-active: rgba(52, 211, 153, .42);
+  --ec-primary-text: #062417;
+  --ec-highlight: rgba(32, 205, 136, .14);
+  --ec-shadow: 0 22px 58px rgba(0, 0, 0, .22);
+}
+/* EC-CICLO-TOKENS-V2 — fim */

@@ -1,0 +1,238 @@
+/* E-Ciclo / Painel Administrativo • visual Eco-Tech
+   Escopo intencional: .ec-admin. Não altera a Home ou as páginas públicas.
+   Ícones, tabelas, formulários e transições sem dependências externas. */
+.ec-admin {
+  --ea-bg: #08120d;
+  --ea-bg-alt: #0d1b14;
+  --ea-panel: #122019;
+  --ea-panel-2: #15271e;
+  --ea-input: #0c1912;
+  --ea-fg: #edf8ef;
+  --ea-muted: #a8c0b1;
+  --ea-muted-2: #879f90;
+  --ea-edge: rgba(176,242,192,.13);
+  --ea-edge-strong: rgba(58,209,139,.38);
+  --ea-accent: #34d399;
+  --ea-tint: rgba(16,185,129,.10);
+  --ea-shadow: 0 20px 54px rgba(0,0,0,.18);
+  --ea-sidebar: #082216;
+  background-color: var(--ea-bg);
+  color: var(--ea-fg);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: color .3s ease, background-color .3s ease;
+}
+.ec-admin.ec-admin--claro {
+  --ea-bg: #f5faf6;
+  --ea-bg-alt: #eaf5ed;
+  --ea-panel: #ffffff;
+  --ea-panel-2: #eff7f0;
+  --ea-input: #ffffff;
+  --ea-fg: #142b1e;
+  --ea-muted: #4e6857;
+  --ea-muted-2: #657c6e;
+  --ea-edge: rgba(30,99,56,.16);
+  --ea-edge-strong: rgba(8,131,80,.35);
+  --ea-accent: #08764f;
+  --ea-tint: rgba(16,185,129,.075);
+  --ea-shadow: 0 22px 50px rgba(30,79,45,.075);
+}
+.ec-admin--layout, .ec-admin--pontos {
+  background-image: radial-gradient(ellipse 800px 450px at 85% 3%, rgba(20,181,111,.095), transparent 70%),
+                    linear-gradient(160deg, var(--ea-bg), var(--ea-bg-alt) 100%);
+  background-attachment: fixed;
+  background-color: var(--ea-bg) !important;
+  color: var(--ea-fg) !important;
+}
+.ec-admin :is(h1,h2,h3) { letter-spacing: -.035em; text-wrap: balance; }
+.ec-admin :is(a,button,input,select,textarea) { transition: background-color .22s ease, border-color .22s ease, color .22s ease, box-shadow .22s ease, transform .22s ease; }
+.ec-admin :is(a,button,input,select,textarea):focus-visible { outline: 3px solid var(--ea-accent); outline-offset: 3px; }
+.ec-admin :is(button,select):disabled { cursor: not-allowed; opacity: .62; }
+
+/* Navegação lateral permanente, escura nos dois temas para combinar com a marca. */
+.ec-admin .ec-admin-sidebar {
+  background: radial-gradient(ellipse at 80% 0, #144d31 0, transparent 58%), linear-gradient(175deg, #0c3220, #071b12 75%) !important;
+  color: #ebfff0 !important;
+  border-color: rgba(112,219,153,.16) !important;
+}
+.ec-admin--layout .ec-admin-sidebar { display: flex; flex-direction: column; }
+.ec-admin .ec-admin-sidebar :is(h1,h2,p,small) { color: #b5d5bd; }
+.ec-admin .ec-admin-sidebar .ec-admin-brand { display:flex; align-items:center; gap:12px; text-decoration:none; }
+.ec-admin .ec-admin-sidebar .ec-admin-brand img { flex:none; height:47px; width:47px; object-fit:contain; padding:5px; border:1px solid rgba(72,224,158,.26); border-radius:14px; background:rgba(4,34,22,.63); }
+.ec-admin .ec-admin-sidebar .ec-admin-brand strong { color:#f2fff5; letter-spacing:-.035em; font-size:1.38rem; font-weight:830; line-height:1.1; display:block; }
+.ec-admin .ec-admin-sidebar .ec-admin-brand strong span { color:#50e8a2; }
+.ec-admin .ec-admin-sidebar .ec-admin-brand small { display:block; margin-top:5px; color:#86bba2; font-size:.63rem; letter-spacing:.17em; font-weight:800; }
+.ec-admin .ec-admin-sidebar nav :is(a,button) {
+  color: #bdd7c7 !important;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  min-height: 45px;
+}
+.ec-admin .ec-admin-sidebar nav a:hover { color:#fff !important; background:rgba(52,211,153,.095) !important; border-color:rgba(52,211,153,.13); transform:translateX(3px); }
+.ec-admin--layout .ec-admin-sidebar nav a[aria-current="page"],
+.ec-admin--pontos .ec-admin-sidebar nav a[href="/admin/pontos-de-coleta"] {
+  color: #beffe0 !important;
+  background: linear-gradient(100deg,rgba(16,185,129,.2),rgba(16,185,129,.055)) !important;
+  border-color: rgba(52,211,153,.23) !important;
+  box-shadow: inset 3px 0 #34d399;
+}
+.ec-admin .ec-admin-sidebar .ea-nav-icon { display:inline-flex; align-items:center; justify-content:center; flex:none; width:22px; height:22px; color: #6cebb0; }
+.ec-admin .ec-admin-sidebar .ea-nav-icon svg { height:20px; width:20px; }
+.ec-admin .ec-admin-sidebar button { color:#dcf6e5 !important; border-color:rgba(166,242,198,.23) !important; background-color:rgba(255,255,255,.055) !important; font-weight:650; }
+.ec-admin .ec-admin-sidebar button:hover { background-color:rgba(52,211,153,.13) !important; }
+.ec-admin .ec-admin-sidebar button[class*="text-rose"], .ec-admin .ec-admin-sidebar button[class*="text-red"] { color:#fec5bd !important; }
+.ec-admin .ec-admin-sidebar .text-emerald-500 { color: #6ef0b8 !important; }
+
+/* Painel principal: espaçamento, cabeçalhos e composição. */
+.ec-admin--layout .ec-admin-main, .ec-admin--pontos .ec-admin-main { position:relative; isolation:isolate; }
+.ec-admin--layout .ec-admin-main::before,
+.ec-admin--pontos .ec-admin-main::before {
+  content:""; position:absolute; pointer-events:none; inset:0 0 auto; height:330px; z-index:-1;
+  background-image: linear-gradient(rgba(22,178,104,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(22,178,104,.07) 1px,transparent 1px);
+  background-size:52px 52px; mask-image:linear-gradient(#000,transparent);
+}
+.ec-admin--layout .ec-admin-heading {
+  padding: 25px clamp(20px,3vw,38px); margin-bottom:28px; border-radius:24px;
+  border: 1px solid var(--ea-edge);
+  background: radial-gradient(ellipse at 94% 14%,rgba(32,194,117,.17),transparent 45%),
+              linear-gradient(125deg,var(--ea-panel),var(--ea-panel-2));
+  box-shadow:var(--ea-shadow);
+  overflow:hidden;
+}
+.ec-admin--layout .ec-admin-heading > p:first-child { font-size:.7rem; color:var(--ea-accent) !important; letter-spacing:.19em; }
+.ec-admin--layout .ec-admin-heading h1 { color:var(--ea-fg); font-weight:850; line-height:1.12; }
+.ec-admin--layout .ec-admin-heading p:last-child { color:var(--ea-muted); max-width:65ch; }
+
+/* Cartões e indicadores • não afeta o modal de Pontos de Coleta. */
+.ec-admin--layout .ec-admin-main :is(section,article)[class*="rounded-2xl"],
+.ec-admin--pontos .ec-admin-main section[class*="rounded-2xl"],
+.ec-admin--pontos .ec-admin-main article[class*="rounded-2xl"] {
+  background:var(--ea-panel) !important;
+  background-image:none !important;
+  border-color:var(--ea-edge) !important;
+  color:var(--ea-fg);
+  border-radius:22px;
+  box-shadow:var(--ea-shadow);
+}
+.ec-admin .ec-admin-stats > div {
+  position:relative; overflow:hidden; isolation:isolate;
+  border-radius:22px;
+  background:var(--ea-panel) !important;
+  border:1px solid var(--ea-edge) !important;
+  box-shadow:var(--ea-shadow);
+  transition:transform .28s cubic-bezier(.2,.7,.3,1),box-shadow .28s ease,border-color .28s ease;
+}
+.ec-admin .ec-admin-stats > div::before {
+  content:""; position:absolute; right:-28px; top:-34px; width:132px; height:132px; border-radius:50%;
+  border:24px solid var(--ea-tint); pointer-events:none; z-index:-1;
+}
+.ec-admin .ec-admin-stats > div::after {
+  content:""; position:absolute; left:20px; bottom:0; width:54px; height:3px; border-radius:20px 20px 0 0; background:var(--ea-accent); opacity:.85;
+}
+.ec-admin .ec-admin-stats > div:hover { transform:translateY(-4px); border-color:var(--ea-edge-strong) !important; box-shadow:0 21px 48px rgba(1,22,11,.16); }
+.ec-admin .ec-admin-stats > div > p:first-child { font-weight:650; }
+.ec-admin .ec-admin-stats > div > p:nth-of-type(2) { letter-spacing:-.05em; }
+.ec-admin :is(.ec-admin-main, .ec-admin-topbar) :is(h1,h2,h3) { color:var(--ea-fg); }
+.ec-admin :is(.ec-admin-main, .ec-admin-topbar) :is(.text-slate-400,.text-slate-500,.text-slate-600) { color:var(--ea-muted) !important; }
+.ec-admin--claro .ec-admin-main :is(.text-white,.text-slate-100,.text-slate-200,.text-slate-900) { color:var(--ea-fg) !important; }
+.ec-admin--escuro .ec-admin-main :is(.text-slate-900,.text-slate-800) { color:var(--ea-fg) !important; }
+.ec-admin .ec-admin-main :is([class*="border-white/"],[class*="border-slate-"]) { border-color:var(--ea-edge); }
+
+/* Tabelas administrativas legíveis, inclusive em telas pequenas. */
+.ec-admin .ec-admin-main .overflow-x-auto { overflow-x:auto; border-radius:14px; scrollbar-width:thin; scrollbar-color:var(--ea-edge-strong) transparent; }
+.ec-admin .ec-admin-main table { border-collapse:separate; border-spacing:0; width:100%; }
+.ec-admin .ec-admin-main table thead { background:var(--ea-tint); color:var(--ea-muted) !important; }
+.ec-admin .ec-admin-main table th { font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.075em; white-space:nowrap; }
+.ec-admin .ec-admin-main table th, .ec-admin .ec-admin-main table td { padding:14px 13px; vertical-align:middle; }
+.ec-admin .ec-admin-main table tbody tr { border-top:1px solid var(--ea-edge); }
+.ec-admin .ec-admin-main table tbody tr + tr td { border-top:1px solid var(--ea-edge); }
+.ec-admin .ec-admin-main table tbody tr:nth-child(even) { background:var(--ea-tint); }
+.ec-admin .ec-admin-main table tbody tr:hover { background:rgba(16,185,129,.12); }
+.ec-admin .ec-admin-main table td { color:var(--ea-fg); }
+
+/* Campos, filtros e botões, respeitando texto e estados da interface. */
+.ec-admin--layout .ec-admin-main :is(input:not([type="checkbox"]),select,textarea),
+.ec-admin--pontos :is(.ec-admin-main,[role="dialog"]) :is(input:not([type="checkbox"]),select,textarea),
+.ec-admin--login main :is(input:not([type="checkbox"]),select,textarea) {
+  background:var(--ea-input) !important; color:var(--ea-fg) !important;
+  border:1px solid var(--ea-edge) !important;
+  min-height:43px; border-radius:12px; accent-color:#10b981;
+}
+.ec-admin :is(input,textarea)::placeholder { color:var(--ea-muted-2) !important; opacity:1; }
+.ec-admin--layout .ec-admin-main :is(input,select,textarea):focus,
+.ec-admin--pontos :is(.ec-admin-main,[role="dialog"]) :is(input,select,textarea):focus,
+.ec-admin--login main :is(input,select,textarea):focus { border-color:var(--ea-edge-strong) !important; box-shadow:0 0 0 3px var(--ea-tint); }
+.ec-admin select option { color:var(--ea-fg); background:var(--ea-input); }
+.ec-admin :is(.ec-admin-main,[role="dialog"]) :is(a,button)[class*="bg-emerald-"],
+.ec-admin--login main :is(a,button)[class*="bg-emerald-"] {
+  color:#042819 !important;
+  background:#34d399 !important;
+  border-color:rgba(52,211,153,.12) !important;
+  font-weight:800;
+  box-shadow:0 10px 24px rgba(16,185,129,.16);
+}
+.ec-admin :is(.ec-admin-main,[role="dialog"]) :is(a,button)[class*="bg-emerald-"]:not(:disabled):hover,
+.ec-admin--login main :is(a,button)[class*="bg-emerald-"]:not(:disabled):hover { transform:translateY(-2px); background:#6ee7b7 !important; box-shadow:0 15px 28px rgba(16,185,129,.25); }
+.ec-admin .ec-admin-main :is(button,a) { border-radius:11px; }
+.ec-admin .ec-admin-main :is(a,button):not(:disabled):active { transform:scale(.985); }
+.ec-admin--layout .ec-admin-main :is(.text-emerald-500,.text-emerald-600),
+.ec-admin--pontos .ec-admin-main :is(.text-emerald-500,.text-emerald-600) { color:var(--ea-accent) !important; }
+.ec-admin .ec-admin-main [role="alert"] { border-radius:13px; }
+.ec-admin .ec-admin-main [role="status"] { color:var(--ea-muted); }
+
+/* Pontos de coleta tem cabeçalho e menu próprios no código atual. */
+.ec-admin--pontos .ec-admin-topbar { background:var(--ea-panel) !important; border-color:var(--ea-edge) !important; color:var(--ea-fg); box-shadow:0 6px 30px rgba(0,0,0,.04); }
+.ec-admin--pontos .ec-admin-topbar p { color:var(--ea-muted); }
+.ec-admin--pontos .ec-admin-topbar :is(a,button) { border-radius:12px; }
+.ec-admin--pontos .ec-admin-sidebar > a:first-child img { display:block; width:43px; height:43px; object-fit:contain; }
+.ec-admin--pontos .ec-admin-sidebar > a:first-child h1 { color:#effcf3; }
+.ec-admin--pontos .ec-admin-sidebar > a:first-child p { color:#b5d5bd; }
+.ec-admin--pontos .ec-admin-main > div:first-child h1 { font-size:clamp(2rem,3vw,3rem); }
+.ec-admin--pontos .ec-admin-main .ea-demo-note { font-size:.77rem; font-weight:700; color:var(--ea-muted); margin-top:12px; display:inline-flex; align-items:center; gap:8px; }
+.ec-admin--pontos .ec-admin-main .ea-demo-note::before { content:"i"; display:inline-flex; width:18px; height:18px; justify-content:center; align-items:center; border:1px solid var(--ea-edge-strong); border-radius:50%; color:var(--ea-accent); font-style:italic; font-weight:800; }
+.ec-admin--pontos [role="dialog"] { background:var(--ea-panel) !important; color:var(--ea-fg); border:1px solid var(--ea-edge) !important; box-shadow:0 30px 90px rgba(0,0,0,.34); border-radius:24px; }
+.ec-admin--pontos [role="dialog"] :is(h2,p) { color:var(--ea-fg); }
+.ec-admin--pontos [role="dialog"] label { color:var(--ea-muted); }
+.ec-admin--pontos [role="dialog"] input[type="checkbox"] { accent-color:#10b981; }
+
+/* Login administrativo: mesma linguagem, sem interferir na Navbar pública. */
+.ec-admin--login { background:var(--ea-bg) !important; color:var(--ea-fg) !important; }
+.ec-admin--login main { background:radial-gradient(ellipse at 90% 5%,rgba(23,185,109,.14),transparent 45%),linear-gradient(130deg,var(--ea-bg),var(--ea-bg-alt)); }
+.ec-admin--login .login-card { background:var(--ea-panel) !important; color:var(--ea-fg) !important; border:1px solid var(--ea-edge) !important; border-radius:26px; box-shadow:0 26px 85px rgba(0,0,0,.16); }
+.ec-admin--login .login-apresentacao { background:linear-gradient(150deg,var(--ea-panel-2),var(--ea-bg-alt)) !important; border-color:var(--ea-edge) !important; }
+.ec-admin--login main :is(h1,h2,h3) { color:var(--ea-fg) !important; }
+.ec-admin--login main :is(.text-slate-400,.text-slate-600,.text-slate-700) { color:var(--ea-muted) !important; }
+.ec-admin--login main .login-apresentacao [class*="h-16"][class*="w-16"] {
+  background-image:url('/branding/icon-192.png') !important;
+  background-size:contain !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+  border-color:var(--ea-edge-strong) !important;
+  font-size:0 !important;
+  color:transparent !important;
+}
+.ec-admin--login.tema-claro main [class*="text-white"] { color:var(--ea-fg) !important; }
+.ec-admin--login.tema-claro main [class*="bg-gradient-to-br"] { background-image:none !important; background-color:var(--ea-panel) !important; }
+
+/* Acessibilidade, telas pequenas e mesma cadência da Home. */
+@keyframes ea-entrar { from {opacity:0;transform:translateY(14px)} to {opacity:1;transform:translateY(0)} }
+@media (prefers-reduced-motion: no-preference) {
+  .ec-admin .ec-admin-heading, .ec-admin .ec-admin-stats > div, .ec-admin .ec-admin-main > section { animation:ea-entrar .55s cubic-bezier(.2,.75,.3,1) both; }
+  .ec-admin .ec-admin-stats > div:nth-child(2) { animation-delay:.06s; }
+  .ec-admin .ec-admin-stats > div:nth-child(3) { animation-delay:.12s; }
+  .ec-admin .ec-admin-stats > div:nth-child(4) { animation-delay:.18s; }
+  .ec-admin .ec-admin-stats > div:nth-child(5) { animation-delay:.24s; }
+  .ec-admin .ec-admin-stats > div:nth-child(6) { animation-delay:.3s; }
+}
+@media (min-width:1024px) {
+  .ec-admin--layout .ec-admin-sidebar { position:sticky; top:0; height:100vh; overflow-y:auto; scrollbar-width:thin; }
+}
+@media (max-width:767px) {
+  .ec-admin .ec-admin-main table { min-width:670px; }
+  .ec-admin--layout .ec-admin-main { padding-left:16px; padding-right:16px; }
+  .ec-admin--layout .ec-admin-heading { padding:22px 18px; }
+  .ec-admin--pontos .ec-admin-topbar > div { flex-wrap:wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ec-admin *, .ec-admin *::before, .ec-admin *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+}
