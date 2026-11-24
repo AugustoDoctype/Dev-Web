@@ -18,7 +18,7 @@ app.use(express.json())
 
 setupSwagger(app)
 
-app.use('/uploads', express.static('uploads'))
+app.use('/uploads', express.static(process.env.UPLOAD_DIR || 'uploads'))
 
 app.get('/', async (req, res) => {
   try {
