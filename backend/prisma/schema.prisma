@@ -99,3 +99,19 @@ model Equipamento {
 
   @@map("equipamentos")
 }
+
+model PontoColeta {
+  id           String   @id @default(uuid())
+  nome         String
+  endereco     String
+  horario      String   @default("")
+  materiais    String   @default("[]")
+  categoria    String   @default("Eletrônicos em geral")
+  latitude     Float
+  longitude    Float
+  status       String   @default("Ativo")
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  @@map("pontos_coleta")
+}

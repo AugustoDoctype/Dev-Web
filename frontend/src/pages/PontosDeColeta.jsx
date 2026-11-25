@@ -10,39 +10,10 @@ import {
 } from 'react-leaflet'
 import Navbar from '../components/public/Navbar'
 import 'leaflet/dist/leaflet.css'
+import { apiFetch } from '../services/api'
 
-const STORAGE_KEY = 'mock_pontos_coleta'
 const THEME_KEY = 'eciclo-tema'
 
-const pontosDemonstracao = [
-  {
-    id: 'demo-1',
-    nome: 'Coleta de Eletrônicos',
-    endereco: 'Região central de Manaus',
-    material: 'Celulares, tablets e carregadores',
-    categoria: 'Celulares e acessórios',
-    posicao: [-3.119, -60.0217],
-    horario: 'Consultar disponibilidade',
-  },
-  {
-    id: 'demo-2',
-    nome: 'Coleta de Informática',
-    endereco: 'Zona Centro-Sul de Manaus',
-    material: 'Computadores, notebooks e periféricos',
-    categoria: 'Informática',
-    posicao: [-3.1015, -60.0135],
-    horario: 'Consultar disponibilidade',
-  },
-  {
-    id: 'demo-3',
-    nome: 'Descarte de Componentes',
-    endereco: 'Zona Sul de Manaus',
-    material: 'Placas eletrônicas, cabos e fontes',
-    categoria: 'Componentes',
-    posicao: [-3.135, -60.008],
-    horario: 'Consultar disponibilidade',
-  },
-]
 
 const CATEGORIAS = [
   'Todas as categorias',
@@ -61,8 +32,8 @@ function lerTema() {
 }
 
 function normalizarPonto(ponto) {
-  const latitude = Number(ponto.latitude)
-  const longitude = Number(ponto.longitude)
+  const latitude = ponto.latitude == null ? NaN : Number(ponto.latitude)
+  const longitude = ponto.longitude == null ? NaN : Number(ponto.longitude)
 
   if (
     ponto.latitude === '' ||
@@ -81,7 +52,7 @@ function normalizarPonto(ponto) {
     id: ponto.id,
     nome: ponto.nome || 'Ponto de coleta',
     endereco: ponto.endereco || 'Endereço não informado',
-    material: ponto.materiais || 'Materiais não informados',
+    material: Array.isArray(ponto.materiais) ? ponto.materiais.join(', ') : (ponto.materiais || 'Materiais não informados'),
     categoria: ponto.categoria || 'Eletrônicos em geral',
     horario: ponto.horario || 'Consultar disponibilidade',
     posicao: [latitude, longitude],
@@ -231,7 +202,9 @@ function CartaoInformativo({ ponto, selecionado, aoSelecionar }) {
 }
 
 export default function PontosDeColeta() {
-  const [pontosSalvos, setPontosSalvos] = useState(null)
+  const [pontosSalvos, setPontosSalvos] = useState([])
+  const [erroPontos, setErroPontos] = useState('')
+  const [carregandoPontos, setCarregandoPontos] = useState(true)
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(
     'Todas as categorias'
   )
@@ -274,53 +247,21 @@ export default function PontosDeColeta() {
     }
   }, [])
 
-  // Carrega os pontos cadastrados na área administrativa.
+  // A API compartilha os mesmos dados com visitantes e administradores.
   useEffect(() => {
-    function carregarPontos() {
-      try {
-        const dados = localStorage.getItem(STORAGE_KEY)
-
-        if (dados === null) {
-          setPontosSalvos(null)
-          return
-        }
-
-        const lista = JSON.parse(dados)
-
-        if (!Array.isArray(lista)) {
-          setPontosSalvos(null)
-          return
-        }
-
-        const pontosAtivos = lista
-          .filter((ponto) => ponto.status === 'Ativo')
-          .map(normalizarPonto)
-          .filter(Boolean)
-
-        setPontosSalvos(pontosAtivos)
-      } catch (error) {
-        console.error('Erro ao carregar pontos de coleta:', error)
-        setPontosSalvos(null)
-      }
-    }
-
-    carregarPontos()
-    window.addEventListener('storage', carregarPontos)
-
-    // Permite atualizar a lista quando a área administrativa
-    // emitir este evento após salvar alterações.
-    window.addEventListener('pontos-coleta-atualizados', carregarPontos)
-
-    return () => {
-      window.removeEventListener('storage', carregarPontos)
-      window.removeEventListener(
-        'pontos-coleta-atualizados',
-        carregarPontos
-      )
-    }
+    let ativo = true
+    apiFetch('/pontos-coleta', { auth: 'none' })
+      .then((lista) => {
+        if (ativo) setPontosSalvos(Array.isArray(lista) ? lista.map(normalizarPonto).filter(Boolean) : [])
+      })
+      .catch((error) => {
+        if (ativo) setErroPontos(error.message)
+      })
+      .finally(() => { if (ativo) setCarregandoPontos(false) })
+    return () => { ativo = false }
   }, [])
 
-  const pontos = pontosSalvos ?? pontosDemonstracao
+  const pontos = pontosSalvos
 
   const pontosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase()
@@ -493,6 +434,8 @@ const pontoSelecionadoVisivel =
       <Navbar />
 
       <main>
+        {erroPontos && <div role="alert" className="mx-auto max-w-7xl p-4 text-red-400">Não foi possível carregar os pontos de coleta: {erroPontos}</div>}
+        {carregandoPontos && <p role="status" className="mx-auto max-w-7xl p-4 text-sm text-emerald-300">Carregando pontos de coleta...</p>}
         {/* Hero */}
         <section className="relative isolate overflow-hidden border-b border-white/[0.07] bg-[#0b1311]">
           <div
