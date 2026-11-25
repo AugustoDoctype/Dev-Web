@@ -184,7 +184,7 @@
 .ec-admin--pontos .ec-admin-topbar { background:var(--ea-panel) !important; border-color:var(--ea-edge) !important; color:var(--ea-fg); box-shadow:0 6px 30px rgba(0,0,0,.04); }
 .ec-admin--pontos .ec-admin-topbar p { color:var(--ea-muted); }
 .ec-admin--pontos .ec-admin-topbar :is(a,button) { border-radius:12px; }
-.ec-admin--pontos .ec-admin-sidebar > a:first-child img { display:block; width:43px; height:43px; object-fit:contain; }
+
 .ec-admin--pontos .ec-admin-sidebar > a:first-child h1 { color:#effcf3; }
 .ec-admin--pontos .ec-admin-sidebar > a:first-child p { color:#b5d5bd; }
 .ec-admin--pontos .ec-admin-main > div:first-child h1 { font-size:clamp(2rem,3vw,3rem); }
