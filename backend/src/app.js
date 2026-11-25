@@ -10,6 +10,7 @@ import authRoutes from './routes/authRoutes.js'
 import acompanhamentoRoutes from './routes/acompanhamentoRoutes.js'
 import doadorAuthRoutes from './routes/doadorAuthRoutes.js'
 import perfilDoadorRoutes from './routes/perfilDoadorRoutes.js'
+import pontosColetaRoutes from './routes/pontosColetaRoutes.js'
 
 const app = express()
 
@@ -18,7 +19,7 @@ app.use(express.json())
 
 setupSwagger(app)
 
-app.use('/uploads', express.static('uploads'))
+app.use('/uploads', express.static(process.env.UPLOAD_DIR || 'uploads'))
 
 app.get('/', async (req, res) => {
   try {
@@ -40,5 +41,6 @@ app.use('/doadores', doadorRoutes)
 app.use('/equipamentos', equipamentoRoutes)
 app.use('/dashboard', dashboardRoutes)
 app.use('/acompanhamento', acompanhamentoRoutes)
+app.use('/', pontosColetaRoutes)
 
 export default app

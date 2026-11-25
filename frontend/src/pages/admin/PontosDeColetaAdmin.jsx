@@ -1,35 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import '../../tema.css'
+import { apiFetch } from '../../services/api'
+import SeletorLocalizacao from '../../components/admin/SeletorLocalizacao'
 
-const STORAGE_KEY = 'mock_pontos_coleta'
-
-const PONTOS_INICIAIS = [
-  {
-    id: 1,
-    nome: 'Ecoponto Centro',
-    endereco: 'Centro, Manaus - AM',
-    horario: 'Segunda a sexta, 8h às 17h',
-    materiais: ['Plástico', 'Papel', 'Metal'],
-    status: 'Ativo',
-  },
-  {
-    id: 2,
-    nome: 'Ponto de Coleta Adrianópolis',
-    endereco: 'Adrianópolis, Manaus - AM',
-    horario: 'Segunda a sábado, 8h às 18h',
-    materiais: ['Plástico', 'Vidro', 'Papel'],
-    status: 'Ativo',
-  },
-  {
-    id: 3,
-    nome: 'Ecoponto Zona Leste',
-    endereco: 'Zona Leste, Manaus - AM',
-    horario: 'Segunda a sexta, 9h às 16h',
-    materiais: ['Metal', 'Eletrônicos', 'Plástico'],
-    status: 'Inativo',
-  },
-]
+// Pontos são persistidos pela API no SQLite; localStorage é usado só para migração opcional.
 
 const FORM_VAZIO = {
   nome: '',
@@ -37,6 +12,9 @@ const FORM_VAZIO = {
   horario: '',
   materiais: [],
   status: 'Ativo',
+  categoria: 'Eletrônicos em geral',
+  latitude: '',
+  longitude: '',
 }
 
 const MATERIAIS_DISPONIVEIS = [
@@ -67,52 +45,6 @@ function normalizarMateriais(materiais) {
   return []
 }
 
-function normalizarPonto(ponto, indice = 0) {
-  const dados =
-    ponto && typeof ponto === 'object' && !Array.isArray(ponto)
-      ? ponto
-      : {}
-
-  return {
-    ...dados,
-    id: dados.id ?? Date.now() + indice,
-    nome: typeof dados.nome === 'string' ? dados.nome : '',
-    endereco:
-      typeof dados.endereco === 'string' ? dados.endereco : '',
-    horario:
-      typeof dados.horario === 'string' ? dados.horario : '',
-    materiais: normalizarMateriais(dados.materiais),
-    status: dados.status === 'Inativo' ? 'Inativo' : 'Ativo',
-  }
-}
-
-function carregarPontos() {
-  try {
-    const salvos = localStorage.getItem(STORAGE_KEY)
-
-    if (!salvos) {
-      return PONTOS_INICIAIS.map(normalizarPonto)
-    }
-
-    const dados = JSON.parse(salvos)
-
-    if (!Array.isArray(dados)) {
-      return PONTOS_INICIAIS.map(normalizarPonto)
-    }
-
-    return dados.map((ponto, indice) =>
-      normalizarPonto(ponto, indice),
-    )
-  } catch (erro) {
-    console.error(
-      'Não foi possível carregar os pontos de coleta:',
-      erro,
-    )
-
-    return PONTOS_INICIAIS.map(normalizarPonto)
-  }
-}
-
 export default function PontosDeColetaAdmin() {
   const navigate = useNavigate()
 
@@ -122,7 +54,9 @@ export default function PontosDeColetaAdmin() {
       : 'escuro',
   )
 
-  const [pontos, setPontos] = useState(carregarPontos)
+  const [pontos, setPontos] = useState([])
+  const [carregandoPontos, setCarregandoPontos] = useState(true)
+  const [salvandoPonto, setSalvandoPonto] = useState(false)
   const [busca, setBusca] = useState('')
   const [filtroStatus, setFiltroStatus] = useState('Todos')
   const [modalAberto, setModalAberto] = useState(false)
@@ -159,15 +93,16 @@ export default function PontosDeColetaAdmin() {
   }, [])
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(pontos))
-    } catch (erro) {
-      console.error(
-        'Não foi possível salvar os pontos de coleta:',
-        erro,
-      )
-    }
-  }, [pontos])
+    let ativo = true
+    apiFetch('/admin/pontos-coleta').then((lista) => {
+      if (ativo) setPontos(Array.isArray(lista) ? lista : [])
+    }).catch((error) => {
+      if (ativo) setErro(error.message)
+    }).finally(() => {
+      if (ativo) setCarregandoPontos(false)
+    })
+    return () => { ativo = false }
+  }, [])
 
   useEffect(() => {
     function fecharComEscape(evento) {
@@ -256,6 +191,9 @@ export default function PontosDeColetaAdmin() {
       horario: ponto.horario,
       materiais: normalizarMateriais(ponto.materiais),
       status: ponto.status,
+      categoria: ponto.categoria || 'Eletrônicos em geral',
+      latitude: ponto.latitude ?? '',
+      longitude: ponto.longitude ?? '',
     })
 
     setErro('')
@@ -293,88 +231,68 @@ export default function PontosDeColetaAdmin() {
     })
   }
 
-  function salvarPonto(evento) {
+  async function salvarPonto(evento) {
     evento.preventDefault()
-
-    if (!form.nome.trim() || !form.endereco.trim()) {
-      setErro('Preencha o nome e o endereço do ponto de coleta.')
-      return
-    }
-
+    if (salvandoPonto) return
+    setErro('')
     const materiais = normalizarMateriais(form.materiais)
-
-    if (materiais.length === 0) {
-      setErro('Selecione pelo menos um material aceito.')
+    const latitude = form.latitude === '' ? NaN : Number(form.latitude)
+    const longitude = form.longitude === '' ? NaN : Number(form.longitude)
+    if (!form.nome.trim() || !form.endereco.trim() || materiais.length === 0) {
+      setErro('Preencha nome, endereço e ao menos um material aceito.')
       return
     }
-
-    const dadosPonto = {
-      ...form,
-      nome: form.nome.trim(),
-      endereco: form.endereco.trim(),
-      horario: form.horario.trim(),
-      materiais,
+    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 ||
+        !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      setErro('Informe latitude e longitude válidas para exibir o ponto no mapa.')
+      return
     }
-
-    if (pontoEditando) {
-      setPontos((anteriores) =>
-        anteriores.map((ponto) =>
-          String(ponto.id) === String(pontoEditando.id)
-            ? { ...ponto, ...dadosPonto }
-            : ponto,
-        ),
+    setSalvandoPonto(true)
+    try {
+      const data = {
+        ...form, nome: form.nome.trim(), endereco: form.endereco.trim(),
+        horario: form.horario.trim(), materiais, latitude, longitude,
+      }
+      const ponto = await apiFetch(
+        pontoEditando ? `/admin/pontos-coleta/${pontoEditando.id}` : '/admin/pontos-coleta',
+        { method: pontoEditando ? 'PUT' : 'POST', body: JSON.stringify(data) },
       )
-    } else {
-      setPontos((anteriores) => [
-        ...anteriores,
-        {
-          id: Date.now(),
-          ...dadosPonto,
-        },
-      ])
+      setPontos((anteriores) => pontoEditando
+        ? anteriores.map((p) => p.id === ponto.id ? ponto : p)
+        : [ponto, ...anteriores])
+      fecharModal()
+    } catch (error) {
+      setErro(error.message)
+    } finally {
+      setSalvandoPonto(false)
     }
-
-    fecharModal()
   }
 
-  function excluirPonto(id) {
-    const confirmar = window.confirm(
-      'Tem certeza de que deseja excluir este ponto de coleta?',
-    )
-
-    if (!confirmar) return
-
-    setPontos((anteriores) =>
-      anteriores.filter(
-        (ponto) => String(ponto.id) !== String(id),
-      ),
-    )
+  async function excluirPonto(id) {
+    if (!window.confirm('Tem certeza de que deseja excluir este ponto de coleta?')) return
+    setErro('')
+    try {
+      await apiFetch(`/admin/pontos-coleta/${id}`, { method: 'DELETE' })
+      setPontos((anteriores) => anteriores.filter((p) => p.id !== id))
+    } catch (error) { setErro(error.message) }
   }
 
-  function alternarStatus(id) {
-    setPontos((anteriores) =>
-      anteriores.map((ponto) =>
-        String(ponto.id) === String(id)
-          ? {
-              ...ponto,
-              status:
-                ponto.status === 'Ativo' ? 'Inativo' : 'Ativo',
-            }
-          : ponto,
-      ),
-    )
+  async function alternarStatus(id) {
+    const ponto = pontos.find((p) => String(p.id) === String(id))
+    if (!ponto) return
+    setErro('')
+    try {
+      const atualizado = await apiFetch(`/admin/pontos-coleta/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ ...ponto, status: ponto.status === 'Ativo' ? 'Inativo' : 'Ativo' }),
+      })
+      setPontos((anteriores) => anteriores.map((p) => p.id === id ? atualizado : p))
+    } catch (error) { setErro(error.message) }
   }
 
+  // Exemplos locais não são inseridos automaticamente no banco compartilhado.
   function restaurarPontosIniciais() {
-    const confirmar = window.confirm(
-      'Deseja restaurar os pontos de coleta iniciais? Os dados cadastrados serão substituídos.',
-    )
-
-    if (!confirmar) return
-
-    setPontos(PONTOS_INICIAIS.map(normalizarPonto))
-    setBusca('')
-    setFiltroStatus('Todos')
+    window.alert('Os exemplos automáticos foram desativados. Cadastre pontos reais ou de teste com coordenadas verificadas.')
   }
 
   const fundoPagina = modoClaro
@@ -662,6 +580,8 @@ export default function PontosDeColetaAdmin() {
         </header>
 
         <main className="ec-admin-main mx-auto max-w-[1600px] px-5 py-8 sm:px-8 sm:py-10">
+          {erro && <div role="alert" className="mb-5 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-400">{erro}</div>}
+          {carregandoPontos && <p role="status" className="mb-4 text-sm">Carregando pontos cadastrados...</p>}
           {/* Título e ação principal */}
 
           <div className="mb-8 flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
@@ -683,7 +603,7 @@ export default function PontosDeColetaAdmin() {
                 Cadastre, edite e acompanhe os locais de coleta e os materiais
                 que cada ponto recebe.
               </p>
-              <p className="ea-demo-note">Dados demonstrativos, salvos neste navegador</p>
+              <p className="ea-demo-note">Dados compartilhados via API e armazenados no Railway</p>
             </div>
 
             <button
@@ -1102,6 +1022,47 @@ export default function PontosDeColetaAdmin() {
                   placeholder="Ex.: Segunda a sexta, 8h às 17h"
                   className={`w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 ${fundoCampo}`}
                 />
+              </div>
+
+              <SeletorLocalizacao
+                endereco={form.endereco}
+                latitude={form.latitude}
+                longitude={form.longitude}
+                onSelecionar={({ latitude, longitude, endereco }) => {
+                  setForm((atual) => ({
+                    ...atual,
+                    latitude,
+                    longitude,
+                    endereco: atual.endereco.trim()
+                      ? atual.endereco
+                      : (endereco || ''),
+                  }))
+                }}
+              />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="latitude-ponto" className={`mb-2 block text-sm font-semibold ${textoSecundario}`}>Latitude *</label>
+                  <input id="latitude-ponto" type="number" min="-90" max="90" step="any" required
+                    value={form.latitude} onChange={(e) => atualizarCampo('latitude', e.target.value)}
+                    placeholder="Ex.: -3.119" className={`w-full rounded-xl border px-4 py-3 text-sm ${fundoCampo}`} />
+                </div>
+                <div>
+                  <label htmlFor="longitude-ponto" className={`mb-2 block text-sm font-semibold ${textoSecundario}`}>Longitude *</label>
+                  <input id="longitude-ponto" type="number" min="-180" max="180" step="any" required
+                    value={form.longitude} onChange={(e) => atualizarCampo('longitude', e.target.value)}
+                    placeholder="Ex.: -60.0217" className={`w-full rounded-xl border px-4 py-3 text-sm ${fundoCampo}`} />
+                </div>
+              </div>
+              <p className={`text-xs ${textoSecundario}`}>Use as coordenadas exatas do local. Não utilize coordenadas aproximadas para locais reais.</p>
+              <div>
+                <label htmlFor="categoria-ponto" className={`mb-2 block text-sm font-semibold ${textoSecundario}`}>Categoria</label>
+                <select id="categoria-ponto" value={form.categoria} onChange={(e) => atualizarCampo('categoria', e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm ${fundoCampo}`}>
+                  {['Eletrônicos em geral', 'Celulares e acessórios', 'Informática', 'Componentes', 'Pilhas e baterias', 'Outros'].map((categoria) => (
+                    <option key={categoria} value={categoria}>{categoria}</option>
+                  ))}
+                </select>
               </div>
 
               <fieldset>
