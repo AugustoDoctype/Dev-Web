@@ -45,29 +45,6 @@ function normalizarMateriais(materiais) {
   return []
 }
 
-function normalizarPonto(ponto, indice = 0) {
-  const dados =
-    ponto && typeof ponto === 'object' && !Array.isArray(ponto)
-      ? ponto
-      : {}
-
-  return {
-    ...dados,
-    id: dados.id ?? Date.now() + indice,
-    nome: typeof dados.nome === 'string' ? dados.nome : '',
-    endereco:
-      typeof dados.endereco === 'string' ? dados.endereco : '',
-    horario:
-      typeof dados.horario === 'string' ? dados.horario : '',
-    materiais: normalizarMateriais(dados.materiais),
-    status: dados.status === 'Inativo' ? 'Inativo' : 'Ativo',
-    categoria: dados.categoria || 'Eletrônicos em geral',
-    latitude: dados.latitude ?? '',
-    longitude: dados.longitude ?? '',
-  }
-}
-
-
 export default function PontosDeColetaAdmin() {
   const navigate = useNavigate()
 
