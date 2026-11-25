@@ -334,10 +334,10 @@ async function handleBuscar(event) {
               Minhas <span className="text-emerald-400">doações.</span>
             </h1>
 
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-              Acompanhe o andamento das suas doações de eletrônicos.
-              Informe o código de acompanhamento utilizado no cadastro para consultar os
-              registros e verificar o status de cada equipamento.
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+              {doadorLogado
+                ? 'Confira suas doações registradas, acompanhe o status de cada equipamento e acesse os detalhes de cada registro.'
+                : 'Digite o código gerado após registrar uma doação para consultar seu andamento, mesmo sem entrar na conta.'}
             </p>
           </div>
 
@@ -352,10 +352,10 @@ async function handleBuscar(event) {
 
                 <div>
                   <h2 className="text-lg font-extrabold text-white sm:text-xl">
-                    Consultar minhas doações
+                    Consultar uma doação
                   </h2>
                   <p className="mt-1 text-sm leading-6 text-slate-400">
-                    Utilize o código de acompanhamento informado no momento do cadastro.
+                    Utilize o código gerado ao concluir o registro da doação.
                   </p>
                 </div>
               </div>
@@ -408,8 +408,8 @@ async function handleBuscar(event) {
               </form>
 
               <p className="mt-3 text-xs leading-5 text-slate-500">
-                🔒 O Código de Acompanhamento é utilizado para localizar as doações
-                vinculadas ao cadastro.
+                🔒 O código permite consultar as informações públicas de acompanhamento.
+                Guarde-o em local seguro.
               </p>
             </div>
             )}
@@ -450,7 +450,7 @@ async function handleBuscar(event) {
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                   <div>
                     <p className="text-sm font-semibold text-emerald-400">
-                      Consulta concluída
+                      {doadorLogado ? 'Histórico atualizado' : 'Consulta concluída'}
                     </p>
 
                     <h2 className="mt-1 text-2xl font-extrabold text-white">
@@ -476,7 +476,8 @@ async function handleBuscar(event) {
                 {/* Resumo por status */}
                 <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-                    <p className="text-xs font-semibold text-slate-400">
+                    <p className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-amber-300" />
                       Pendentes
                     </p>
                     <p className="mt-2 text-2xl font-extrabold text-amber-300">
@@ -485,7 +486,8 @@ async function handleBuscar(event) {
                   </div>
 
                   <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-                    <p className="text-xs font-semibold text-slate-400">
+                    <p className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-blue-300" />
                       Em análise
                     </p>
                     <p className="mt-2 text-2xl font-extrabold text-blue-300">
@@ -494,7 +496,8 @@ async function handleBuscar(event) {
                   </div>
 
                   <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-                    <p className="text-xs font-semibold text-slate-400">
+                    <p className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-purple-300" />
                       Aguardando coleta
                     </p>
                     <p className="mt-2 text-2xl font-extrabold text-purple-300">
@@ -503,7 +506,8 @@ async function handleBuscar(event) {
                   </div>
 
                   <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-                    <p className="text-xs font-semibold text-slate-400">
+                    <p className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-300" />
                       Concluídas
                     </p>
                     <p className="mt-2 text-2xl font-extrabold text-emerald-300">
@@ -540,7 +544,7 @@ async function handleBuscar(event) {
                                 {item.categoria || 'Categoria não informada'}
                               </span>
 
-                              <p className="mt-3 text-xs text-slate-500">
+                              <p className="mt-3 text-xs font-medium text-slate-400">
                                 Cadastrado em:{' '}
                                 {item.createdAt
                                   ? new Date(item.createdAt).toLocaleDateString(
@@ -623,9 +627,8 @@ async function handleBuscar(event) {
                       Como funciona?
                     </p>
                     <p className="mt-1 text-sm leading-6 text-slate-500">
-                      Informe seu código de acompanhamento e clique em Consultar. Se houver
-                      registros associados, você verá os equipamentos e
-                      o status de cada doação nesta página.
+                      Digite o código gerado após registrar a doação e clique em Consultar.
+                      Você verá o status e os dados públicos de acompanhamento.
                     </p>
                   </div>
                 </div>
@@ -644,13 +647,13 @@ async function handleBuscar(event) {
               </p>
             </div>
 
-            <a
-              href="/doar"
+            <Link
+              to="/doar"
               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-extrabold text-[#07120b] transition hover:bg-emerald-400"
             >
               Fazer uma doação
               <span aria-hidden="true">→</span>
-            </a>
+            </Link>
           </div>
         </div>
       </main>

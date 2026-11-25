@@ -68,7 +68,7 @@
 .ec-home .ec-feature > p { margin-top: 13px; font-size: .92rem; color: var(--ec-muted); line-height: 1.7; }
 .ec-home .ec-feature__link { display: inline-flex; align-items: center; align-self: flex-start; gap: 8px; color: var(--ec-brand-bright); text-decoration: none; font-weight: 750; font-size: .85rem; margin-top: auto; padding-top: 21px; }
 .ec-home .ec-feature__link:hover { text-decoration: underline; text-underline-offset: 4px; }
-.ec-home .ec-section__note { color: var(--ec-muted); font-size: .79rem; line-height: 1.6; text-align: center; margin-top: 23px; }
+.ec-home .ec-section__note { color: var(--ec-muted); font-size: .875rem; line-height: 1.65; text-align: center; margin: 25px auto 0; max-width: 760px; font-weight: 530; }
 .ec-home .ec-section--closing { padding-top: 5px; padding-bottom: 90px; background: var(--ec-page); }
 .ec-home .ec-closing { position: relative; isolation: isolate; padding: clamp(44px,6vw,86px) 20px; overflow: hidden; border-radius: 32px; border: 1px solid var(--ec-border-active); background: radial-gradient(circle at 0% 100%,rgba(46,225,142,.17),transparent 45%),radial-gradient(circle at 100% 0%,rgba(49,189,126,.18),transparent 44%),var(--ec-surface); text-align: center; box-shadow: var(--ec-shadow); }
 .ec-home .ec-closing::after { content: ''; position: absolute; inset: -90px; z-index: -1; background: repeating-radial-gradient(circle at 50% 50%,transparent 0 47px,rgba(86,214,144,.05) 48px 49px,transparent 50px 100px); pointer-events: none; }
@@ -79,6 +79,8 @@
 .ec-home .ec-footer { border-top: 1px solid var(--ec-border); background: var(--ec-page-alt); }
 .ec-home .ec-footer__layout { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 30px; }
 .ec-home .ec-footer__layout p { font-size: .88rem; color: var(--ec-muted); }
+.ec-home .ec-footer__links { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 12px 24px; }
+@media (max-width: 767px) { .ec-home .ec-footer__links { justify-content: center; } }
 .ec-home .ec-footer__brand { display: inline-flex; align-items: center; gap: 3px; font-weight: 850; font-size: 1.32rem; letter-spacing: -.03em; color: var(--ec-text); white-space: nowrap; }
 .ec-home .ec-footer__brand img { width: 41px; height: 36px; object-fit: contain; margin-right: 6px; }
 .ec-home .ec-footer__brand span { color: var(--ec-brand-bright); }
