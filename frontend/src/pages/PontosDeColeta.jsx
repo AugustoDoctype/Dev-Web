@@ -59,6 +59,22 @@ function normalizarPonto(ponto) {
   }
 }
 
+function AjustarMapaAosPontos({ pontos, pontoSelecionado }) {
+  const mapa = useMap()
+  useEffect(() => {
+    if (pontoSelecionado || pontos.length === 0) return
+    if (pontos.length === 1) {
+      mapa.setView(pontos[0].posicao, 15)
+    } else {
+      mapa.fitBounds(pontos.map((ponto) => ponto.posicao), {
+        padding: [36, 36],
+        maxZoom: 15,
+      })
+    }
+  }, [mapa, pontos, pontoSelecionado])
+  return null
+}
+
 function CentralizarMapa({ ponto }) {
   const mapa = useMap()
 
@@ -808,6 +824,7 @@ const pontoSelecionadoVisivel =
                     </CircleMarker>
                   ))}
 
+                  <AjustarMapaAosPontos pontos={pontosFiltrados} pontoSelecionado={pontoSelecionadoVisivel} />
                   <CentralizarMapa ponto={pontoSelecionadoVisivel} />
                 </MapContainer>
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import '../../tema.css'
 import { apiFetch } from '../../services/api'
+import SeletorLocalizacao from '../../components/admin/SeletorLocalizacao'
 
 // Pontos são persistidos pela API no SQLite; localStorage é usado só para migração opcional.
 
@@ -1045,6 +1046,22 @@ export default function PontosDeColetaAdmin() {
                   className={`w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 ${fundoCampo}`}
                 />
               </div>
+
+              <SeletorLocalizacao
+                endereco={form.endereco}
+                latitude={form.latitude}
+                longitude={form.longitude}
+                onSelecionar={({ latitude, longitude, endereco }) => {
+                  setForm((atual) => ({
+                    ...atual,
+                    latitude,
+                    longitude,
+                    endereco: atual.endereco.trim()
+                      ? atual.endereco
+                      : (endereco || ''),
+                  }))
+                }}
+              />
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>

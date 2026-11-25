@@ -54,6 +54,71 @@ router.get('/pontos-coleta', async (_req, res) => {
   }
 })
 
+// Busca de endereço apenas por ação explícita do administrador.
+// O Nominatim público não permite autocomplete e exige limite global de 1 req/s.
+// Para este deployment com uma instância, serializamos as consultas no processo Node.
+// Em implantação com múltiplas instâncias, use um limitador compartilhado ou outro provedor.
+const CACHE_TTL = 24 * 60 * 60 * 1000
+const cacheGeocodificacao = new Map()
+let proximaConsultaEm = 0
+let filaGeocodificacao = Promise.resolve()
+
+async function consultarNominatim(endereco) {
+  const executar = async () => {
+    const espera = Math.max(0, proximaConsultaEm - Date.now())
+    if (espera > 0) await new Promise((resolve) => setTimeout(resolve, espera))
+    proximaConsultaEm = Date.now() + 1200
+    const url = new URL('https://nominatim.openstreetmap.org/search')
+    url.searchParams.set('q', endereco)
+    url.searchParams.set('format', 'jsonv2')
+    url.searchParams.set('limit', '5')
+    url.searchParams.set('countrycodes', 'br')
+    const resposta = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'Accept-Language': 'pt-BR,pt;q=0.9',
+        'User-Agent': process.env.NOMINATIM_USER_AGENT || 'E-Ciclo/1.0 (https://github.com/AugustoDoctype/Dev-Web)',
+      },
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!resposta.ok) throw new Error(`Nominatim: HTTP ${resposta.status}`)
+    const dados = await resposta.json()
+    if (!Array.isArray(dados)) throw new Error('Resposta de geocodificação inesperada')
+    return dados.slice(0, 5).filter((item) =>
+      Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lon))
+    ).map((item) => ({
+      endereco: String(item.display_name || '').slice(0, 300),
+      latitude: Number(item.lat),
+      longitude: Number(item.lon),
+    }))
+  }
+  const tarefa = filaGeocodificacao.then(executar, executar)
+  filaGeocodificacao = tarefa.then(() => undefined, () => undefined)
+  return tarefa
+}
+
+router.get('/admin/geocodificar', verificarToken, async (req, res) => {
+  const endereco = typeof req.query.q === 'string' ? req.query.q.trim() : ''
+  if (endereco.length < 3 || endereco.length > 160 || /[\x00-\x1f]/.test(endereco)) {
+    return res.status(400).json({ erro: 'Informe um endereço entre 3 e 160 caracteres.' })
+  }
+  res.set('Cache-Control', 'private, no-store')
+  const chave = endereco.toLocaleLowerCase('pt-BR')
+  const salvo = cacheGeocodificacao.get(chave)
+  if (salvo && salvo.expiraEm > Date.now()) return res.json(salvo.dados)
+  try {
+    const dados = await consultarNominatim(endereco)
+    if (cacheGeocodificacao.size >= 150) {
+      cacheGeocodificacao.delete(cacheGeocodificacao.keys().next().value)
+    }
+    cacheGeocodificacao.set(chave, { dados, expiraEm: Date.now() + CACHE_TTL })
+    return res.json(dados)
+  } catch (error) {
+    console.error('Erro ao geocodificar endereço:', error.message)
+    return res.status(502).json({ erro: 'A pesquisa de endereços está indisponível. Selecione o local manualmente no mapa.' })
+  }
+})
+
 router.use('/admin/pontos-coleta', verificarToken)
 
 router.get('/admin/pontos-coleta', async (_req, res) => {
