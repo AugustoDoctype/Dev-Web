@@ -82,15 +82,17 @@
 .ec-polish :is([class~="bg-[#111b16]"], [class~="bg-[#111c17]"], [class~="bg-[#111d18]"], [class~="bg-[#0d1514]"], [class~="bg-[#101a19]"], [class~="bg-[#101b14]"], [class~="bg-[#101b17]"], [class~="bg-[#0d1510]"], [class~="bg-[#0e1915]"]) { background-color: var(--ep-surface) !important; }
 .ec-polish :is([class~="bg-[#0b110e]"], [class~="bg-[#080e0d]"], [class~="bg-[#0b1311]"], [class~="bg-[#0a100e]"]) { background-color: var(--ep-page) !important; }
 .ec-polish :is([class~="bg-white/[0.02]"], [class~="bg-white/[0.025]"], [class~="bg-white/[0.03]"], [class~="bg-white/[0.035]"], [class~="bg-white/[0.04]"], [class~="bg-white/5"]) { background-color: var(--ep-accent-soft) !important; }
-/* Preserve o contraste do texto de ações verdes em tema claro e escuro. */
-.ec-polish :is(a, button)[class*="bg-emerald-500"],
-.ec-polish :is(a, button)[class*="bg-emerald-400"],
-.ec-polish :is(a, button)[class*="bg-gradient-to-r"][class*="emerald-"] {
+/* Somente botões com fundo verde SÓLIDO recebem texto escuro.
+   Seletores por substring abrangiam bg-emerald-400/10 e hover:bg-emerald-500/10,
+   apagando o contraste de "Minha área" e "Sair" na Navbar escura. */
+.ec-polish :is(a, button)[class~="bg-emerald-500"],
+.ec-polish :is(a, button)[class~="bg-emerald-400"],
+.ec-polish :is(a, button)[class~="bg-gradient-to-r"][class*="from-emerald-"] {
   color: #062419 !important;
   box-shadow: 0 10px 28px rgba(16, 185, 129, .16);
 }
-.ec-polish :is(a, button)[class*="bg-emerald-500"]:not(:disabled):hover,
-.ec-polish :is(a, button)[class*="bg-emerald-400"]:not(:disabled):hover { box-shadow: 0 16px 36px rgba(16, 185, 129, .25); transform: translateY(-2px); }
+.ec-polish :is(a, button)[class~="bg-emerald-500"]:not(:disabled):hover,
+.ec-polish :is(a, button)[class~="bg-emerald-400"]:not(:disabled):hover { box-shadow: 0 16px 36px rgba(16, 185, 129, .25); transform: translateY(-2px); }
 
 /* Hero: gradientes + grade sutil lembrando trilhas da marca Circuito Infinito. */
 .ec-polish--como main > section:first-child,

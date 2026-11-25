@@ -180,7 +180,7 @@ export default function Home() {
                 </article>
               ))}
             </div>
-            <p className="ec-section__note">Os pontos exibidos no mapa são demonstrativos e não representam, necessariamente, serviços de coleta ativos.</p>
+            <p className="ec-section__note"><strong>Aviso:</strong> os pontos exibidos no mapa são demonstrativos e não representam, necessariamente, serviços de coleta ativos.</p>
           </div>
         </section>
 
@@ -204,7 +204,10 @@ export default function Home() {
         <div className="ec-shell ec-footer__layout">
           <Link to="/" className="ec-footer__brand"><img src="/branding/simbolo-eciclo-transparente.png" alt=""/> E-<span>Ciclo</span></Link>
           <p>Tecnologia e sustentabilidade em um novo ciclo.</p>
-          <Link to="/como-funciona" className="ec-text-link">Conheça o projeto <Icone nome="seta" tamanho={17} /></Link>
+          <div className="ec-footer__links">
+            <Link to="/como-funciona" className="ec-text-link">Conheça o projeto <Icone nome="seta" tamanho={17} /></Link>
+            <a href="https://github.com/AugustoDoctype/Dev-Web" target="_blank" rel="noopener noreferrer" className="ec-text-link" aria-label="Ver o código-fonte do E-Ciclo no GitHub (abre em nova aba)">Código no GitHub ↗</a>
+          </div>
         </div>
       </footer>
     </div>
