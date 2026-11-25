@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import AdminLayout from '../../components/admin/AdminLayout'
 import '../../tema.css'
 import { apiFetch } from '../../services/api'
 import SeletorLocalizacao from '../../components/admin/SeletorLocalizacao'
@@ -46,8 +46,6 @@ function normalizarMateriais(materiais) {
 }
 
 export default function PontosDeColetaAdmin() {
-  const navigate = useNavigate()
-
   const [tema, setTema] = useState(() =>
     localStorage.getItem('eciclo-tema') === 'claro'
       ? 'claro'
@@ -117,33 +115,6 @@ export default function PontosDeColetaAdmin() {
       window.removeEventListener('keydown', fecharComEscape)
     }
   }, [modalAberto])
-
-  function alternarTema() {
-    const novoTema = modoClaro ? 'escuro' : 'claro'
-
-    localStorage.setItem('eciclo-tema', novoTema)
-
-    document.documentElement.classList.toggle(
-      'dark',
-      novoTema === 'escuro',
-    )
-
-    document.documentElement.style.colorScheme =
-      novoTema === 'escuro' ? 'dark' : 'light'
-
-    setTema(novoTema)
-
-    window.dispatchEvent(
-      new CustomEvent('eciclo-tema-alterado', {
-        detail: novoTema,
-      }),
-    )
-  }
-
-  function sair() {
-    localStorage.removeItem('adminToken')
-    navigate('/admin/login')
-  }
 
   const pontosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase()
@@ -290,15 +261,6 @@ export default function PontosDeColetaAdmin() {
     } catch (error) { setErro(error.message) }
   }
 
-  // Exemplos locais não são inseridos automaticamente no banco compartilhado.
-  function restaurarPontosIniciais() {
-    window.alert('Os exemplos automáticos foram desativados. Cadastre pontos reais ou de teste com coordenadas verificadas.')
-  }
-
-  const fundoPagina = modoClaro
-    ? 'bg-slate-50 text-slate-800'
-    : 'bg-[#0b110e] text-slate-100'
-
   const fundoPainel = modoClaro
     ? 'border-slate-200 bg-white'
     : 'border-white/5 bg-[#111b16]'
@@ -327,17 +289,6 @@ export default function PontosDeColetaAdmin() {
     ? 'border-slate-300 bg-white text-slate-900 placeholder:text-slate-400'
     : 'border-white/10 bg-[#0b110e] text-white placeholder:text-slate-600'
 
-  const menuLink = (ativo) =>
-    `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-      ativo
-        ? modoClaro
-          ? 'bg-emerald-50 text-emerald-800'
-          : 'bg-emerald-400/10 text-emerald-300'
-        : modoClaro
-          ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          : 'text-slate-400 hover:bg-white/5 hover:text-white'
-    }`
-
   const botaoPrimario =
     'inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-400 px-4 py-2.5 text-sm font-bold text-[#07110b] transition hover:bg-emerald-300'
 
@@ -356,574 +307,7 @@ export default function PontosDeColetaAdmin() {
       : 'border-amber-400/20 bg-amber-400/10 text-amber-300',
   }
 
-  return (
-    <div
-      className={`ec-admin ec-admin--pontos ${modoClaro ? 'ec-admin--claro' : 'ec-admin--escuro'} min-h-screen transition-colors duration-300 ${fundoPagina}`}
-    >
-      {/* Barra lateral para computadores */}
-
-      <aside
-        className={`ec-admin-sidebar fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r lg:flex ${
-          modoClaro
-            ? 'border-slate-200 bg-white'
-            : 'border-white/5 bg-[#0e1712]'
-        }`}
-      >
-        <Link
-          to="/admin/dashboard"
-          className={`flex h-20 shrink-0 items-center gap-3 border-b px-6 ${
-            borda
-          }`}
-        >
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-400/10 text-2xl">
-            <img src="/branding/icon-192.png" width="43" height="43" alt="" />
-          </div>
-
-          <div>
-            <h1 className={`text-xl font-extrabold ${textoPrincipal}`}>
-              E-Ciclo
-            </h1>
-            <p className={`text-xs ${textoSecundario}`}>
-              Painel administrativo
-            </p>
-          </div>
-        </Link>
-
-        <div className="flex-1 px-4 py-6">
-          <p
-            className={`mb-4 px-3 text-[11px] font-bold uppercase tracking-[0.18em] ${textoDiscreto}`}
-          >
-            Menu principal
-          </p>
-
-          <nav className="space-y-2">
-            <Link to="/admin/dashboard" className={menuLink(false)}>
-              <span className="text-lg">▦</span>
-              Visão geral
-            </Link>
-
-            <Link to="/admin/doacoes" className={menuLink(false)}>
-              <span className="text-lg">♻</span>
-              Doações
-            </Link>
-
-            <Link
-              to="/admin/pontos-de-coleta"
-              className={menuLink(true)}
-            >
-              <span className="text-lg">⌖</span>
-              Pontos de coleta
-              <span className="ml-auto rounded-lg bg-emerald-400/15 px-2 py-1 text-xs text-emerald-500">
-                {pontos.length}
-              </span>
-            </Link>
-          </nav>
-
-          <div
-            className={`mt-10 rounded-2xl border p-4 ${
-              modoClaro
-                ? 'border-emerald-100 bg-emerald-50'
-                : 'border-emerald-400/10 bg-emerald-400/5'
-            }`}
-          >
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-400/15 text-lg">
-              🌱
-            </div>
-
-            <p className={`text-sm font-bold ${textoPrincipal}`}>
-              Um futuro mais sustentável
-            </p>
-
-            <p className={`mt-2 text-xs leading-5 ${textoSecundario}`}>
-              Cada ponto de coleta ajuda a dar o destino correto aos resíduos.
-            </p>
-          </div>
-        </div>
-
-        <div className={`border-t p-4 ${borda}`}>
-          <div className="mb-3 flex items-center gap-3 px-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-400/15 font-bold text-emerald-500">
-              A
-            </div>
-
-            <div className="min-w-0">
-              <p className={`text-sm font-bold ${textoPrincipal}`}>
-                Administrador
-              </p>
-              <p className={`text-xs ${textoSecundario}`}>
-                Gerenciamento do sistema
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={sair}
-            className={`w-full rounded-xl px-4 py-2.5 text-left text-sm font-semibold transition ${
-              modoClaro
-                ? 'text-red-600 hover:bg-red-50'
-                : 'text-red-300 hover:bg-red-400/10'
-            }`}
-          >
-            ↪ Sair do painel
-          </button>
-        </div>
-      </aside>
-
-      {/* Conteúdo principal */}
-
-      <div className="min-w-0 lg:ml-64">
-        {/* Cabeçalho */}
-
-        <header
-          className={`ec-admin-topbar sticky top-0 z-20 border-b backdrop-blur-xl ${
-            modoClaro
-              ? 'border-slate-200 bg-white/90'
-              : 'border-white/5 bg-[#0e1712]/90'
-          }`}
-        >
-          <div className="flex min-h-20 items-center justify-between gap-4 px-5 py-4 sm:px-8">
-            <div>
-              <p className={`text-xs font-semibold ${textoSecundario}`}>
-                E-Ciclo / Administração
-              </p>
-              <h2 className={`mt-1 text-lg font-bold ${textoPrincipal}`}>
-                Gerenciamento de pontos de coleta
-              </h2>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={alternarTema}
-                aria-label={
-                  modoClaro ? 'Ativar tema escuro' : 'Ativar tema claro'
-                }
-                title={
-                  modoClaro ? 'Ativar tema escuro' : 'Ativar tema claro'
-                }
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-xl transition ${
-                  modoClaro
-                    ? 'border-slate-200 bg-white hover:bg-slate-100'
-                    : 'border-white/10 bg-white/5 hover:bg-white/10'
-                }`}
-              >
-                {modoClaro ? '🌙' : '☀️'}
-              </button>
-
-              <div
-                className={`hidden items-center gap-3 rounded-xl border px-3 py-2 sm:flex ${borda}`}
-              >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-400/15 font-bold text-emerald-500">
-                  A
-                </div>
-                <div>
-                  <p className={`text-sm font-bold ${textoPrincipal}`}>
-                    Administrador
-                  </p>
-                  <p className={`text-xs ${textoSecundario}`}>
-                    Painel administrativo
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Navegação para dispositivos móveis */}
-
-          <nav
-            className={`flex gap-2 overflow-x-auto border-t px-5 py-3 lg:hidden ${borda}`}
-          >
-            <Link
-              to="/admin/dashboard"
-              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold ${
-                modoClaro
-                  ? 'text-slate-600 hover:bg-slate-100'
-                  : 'text-slate-400 hover:bg-white/5'
-              }`}
-            >
-              ▦ Visão geral
-            </Link>
-
-            <Link
-              to="/admin/doacoes"
-              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold ${
-                modoClaro
-                  ? 'text-slate-600 hover:bg-slate-100'
-                  : 'text-slate-400 hover:bg-white/5'
-              }`}
-            >
-              ♻ Doações
-            </Link>
-
-            <Link
-              to="/admin/pontos-de-coleta"
-              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold ${
-                modoClaro
-                  ? 'bg-emerald-50 text-emerald-800'
-                  : 'bg-emerald-400/10 text-emerald-300'
-              }`}
-            >
-              ⌖ Pontos de coleta
-            </Link>
-
-            <button
-              type="button"
-              onClick={sair}
-              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold ${
-                modoClaro ? 'text-red-600' : 'text-red-300'
-              }`}
-            >
-              Sair ↪
-            </button>
-          </nav>
-        </header>
-
-        <main className="ec-admin-main mx-auto max-w-[1600px] px-5 py-8 sm:px-8 sm:py-10">
-          {erro && <div role="alert" className="mb-5 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-400">{erro}</div>}
-          {carregandoPontos && <p role="status" className="mb-4 text-sm">Carregando pontos cadastrados...</p>}
-          {/* Título e ação principal */}
-
-          <div className="mb-8 flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
-            <div>
-              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-500">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                ADMINISTRAÇÃO / PONTOS DE COLETA
-              </div>
-
-              <h1
-                className={`text-3xl font-extrabold tracking-tight sm:text-4xl ${textoPrincipal}`}
-              >
-                Pontos de coleta
-              </h1>
-
-              <p
-                className={`mt-3 max-w-2xl text-sm leading-6 sm:text-base ${textoSecundario}`}
-              >
-                Cadastre, edite e acompanhe os locais de coleta e os materiais
-                que cada ponto recebe.
-              </p>
-              <p className="ea-demo-note">Dados compartilhados via API e armazenados no Railway</p>
-            </div>
-
-            <button
-              type="button"
-              onClick={abrirNovoPonto}
-              className={`${botaoPrimario} self-start xl:self-auto`}
-            >
-              <span className="text-lg">+</span>
-              Novo ponto de coleta
-            </button>
-          </div>
-
-          {/* Indicadores */}
-
-          <section className="ec-admin-stats mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {[
-              {
-                titulo: 'Total de pontos',
-                valor: pontos.length,
-                icone: '⌖',
-                detalhe: 'Locais cadastrados no sistema',
-                cor: 'emerald',
-              },
-              {
-                titulo: 'Pontos ativos',
-                valor: totalAtivos,
-                icone: '✓',
-                detalhe: 'Recebendo materiais',
-                cor: 'emerald',
-              },
-              {
-                titulo: 'Pontos inativos',
-                valor: totalInativos,
-                icone: '!',
-                detalhe: 'Temporariamente indisponíveis',
-                cor: 'amber',
-              },
-            ].map((indicador) => (
-              <div
-                key={indicador.titulo}
-                className={`rounded-2xl border p-5 transition hover:-translate-y-0.5 hover:shadow-lg ${fundoPainel}`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className={`text-sm font-medium ${textoSecundario}`}>
-                    {indicador.titulo}
-                  </p>
-
-                  <span
-                    className={`flex h-11 w-11 items-center justify-center rounded-xl text-xl ${
-                      indicador.cor === 'amber'
-                        ? 'bg-amber-400/10 text-amber-500'
-                        : 'bg-emerald-400/10 text-emerald-500'
-                    }`}
-                  >
-                    {indicador.icone}
-                  </span>
-                </div>
-
-                <p
-                  className={`mt-4 text-3xl font-extrabold ${
-                    indicador.cor === 'amber'
-                      ? modoClaro
-                        ? 'text-amber-600'
-                        : 'text-amber-300'
-                      : modoClaro
-                        ? 'text-emerald-700'
-                        : 'text-emerald-300'
-                  }`}
-                >
-                  {indicador.valor}
-                </p>
-
-                <p className={`mt-2 text-xs ${textoDiscreto}`}>
-                  {indicador.detalhe}
-                </p>
-              </div>
-            ))}
-          </section>
-
-          {/* Busca e gerenciamento */}
-
-          <section className={`mb-6 rounded-2xl border p-5 sm:p-6 ${fundoPainel}`}>
-            <div className="mb-5">
-              <h2 className={`text-lg font-bold ${textoPrincipal}`}>
-                Buscar e filtrar
-              </h2>
-              <p className={`mt-1 text-sm ${textoSecundario}`}>
-                Encontre pontos pelo nome, endereço, material ou status.
-              </p>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-[1fr_240px]">
-              <div>
-                <label
-                  htmlFor="busca-pontos"
-                  className={`mb-2 block text-sm font-semibold ${textoSecundario}`}
-                >
-                  Nome, endereço ou material
-                </label>
-
-                <div className="relative">
-                  <span className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${textoDiscreto}`}>
-                    ⌕
-                  </span>
-
-                  <input
-                    id="busca-pontos"
-                    type="search"
-                    value={busca}
-                    onChange={(evento) => setBusca(evento.target.value)}
-                    placeholder="Ex.: Centro, plástico, eletrônicos..."
-                    className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 ${fundoCampo}`}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="filtro-status-pontos"
-                  className={`mb-2 block text-sm font-semibold ${textoSecundario}`}
-                >
-                  Status do ponto
-                </label>
-
-                <select
-                  id="filtro-status-pontos"
-                  value={filtroStatus}
-                  onChange={(evento) => setFiltroStatus(evento.target.value)}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 ${fundoCampo}`}
-                >
-                  <option value="Todos">Todos os status</option>
-                  <option value="Ativo">Ativos</option>
-                  <option value="Inativo">Inativos</option>
-                </select>
-              </div>
-            </div>
-
-            {(busca || filtroStatus !== 'Todos') && (
-              <button
-                type="button"
-                onClick={() => {
-                  setBusca('')
-                  setFiltroStatus('Todos')
-                }}
-                className="mt-4 text-sm font-semibold text-emerald-600 transition hover:text-emerald-500"
-              >
-                Limpar filtros ×
-              </button>
-            )}
-          </section>
-
-          {/* Lista de pontos */}
-
-          <section className={`overflow-hidden rounded-2xl border ${fundoPainel}`}>
-            <div
-              className={`flex flex-col gap-3 border-b px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 ${borda}`}
-            >
-              <div>
-                <h2 className={`text-lg font-bold ${textoPrincipal}`}>
-                  Locais cadastrados
-                </h2>
-                <p className={`mt-1 text-sm ${textoSecundario}`}>
-                  Gerencie os pontos disponíveis para a coleta.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="w-fit rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-600">
-                  {pontosFiltrados.length}{' '}
-                  {pontosFiltrados.length === 1 ? 'resultado' : 'resultados'}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={restaurarPontosIniciais}
-                  className={botaoSecundario}
-                >
-                  Restaurar exemplos
-                </button>
-              </div>
-            </div>
-
-            {pontosFiltrados.length === 0 ? (
-              <div className="px-6 py-16 text-center">
-                <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl ${fundoSecundario}`}>
-                  🔎
-                </div>
-
-                <h3 className={`text-lg font-bold ${textoPrincipal}`}>
-                  Nenhum ponto encontrado
-                </h3>
-
-                <p className={`mx-auto mt-2 max-w-sm text-sm leading-6 ${textoSecundario}`}>
-                  Não encontramos pontos com esses critérios. Tente alterar a
-                  busca ou selecionar outro status.
-                </p>
-
-                {(busca || filtroStatus !== 'Todos') && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBusca('')
-                      setFiltroStatus('Todos')
-                    }}
-                    className="mt-5 rounded-xl bg-emerald-400 px-4 py-2.5 text-sm font-bold text-[#07110b] transition hover:bg-emerald-300"
-                  >
-                    Limpar filtros
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-0">
-                {pontosFiltrados.map((ponto) => {
-                  const materiais = normalizarMateriais(ponto.materiais)
-
-                  return (
-                    <article
-                      key={ponto.id}
-                      className={`border-t p-5 transition first:border-t-0 sm:p-6 ${
-                        modoClaro
-                          ? 'border-slate-200 hover:bg-slate-50'
-                          : 'border-white/5 hover:bg-white/[0.025]'
-                      }`}
-                    >
-                      <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-center">
-                        <div className="flex min-w-0 gap-4">
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/10 text-2xl text-emerald-500">
-                            ♻
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className={`font-bold ${textoPrincipal}`}>
-                                {ponto.nome || 'Ponto sem nome'}
-                              </h3>
-
-                              <span
-                                className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${
-                                  statusEstilo[ponto.status]
-                                }`}
-                              >
-                                {ponto.status}
-                              </span>
-                            </div>
-
-                            <p className={`mt-2 break-words text-sm ${textoSecundario}`}>
-                              <span className="mr-2">⌖</span>
-                              {ponto.endereco || 'Endereço não informado'}
-                            </p>
-
-                            <p className={`mt-1 text-sm ${textoSecundario}`}>
-                              <span className="mr-2">◷</span>
-                              {ponto.horario || 'Horário não informado'}
-                            </p>
-
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {materiais.length > 0 ? (
-                                materiais.map((material, indice) => (
-                                  <span
-                                    key={`${material}-${indice}`}
-                                    className={`rounded-lg border px-2.5 py-1 text-xs ${borda} ${textoSecundario}`}
-                                  >
-                                    {material}
-                                  </span>
-                                ))
-                              ) : (
-                                <span className={`text-xs ${textoDiscreto}`}>
-                                  Nenhum material informado
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex shrink-0 flex-wrap gap-2 xl:justify-end">
-                          <button
-                            type="button"
-                            onClick={() => alternarStatus(ponto.id)}
-                            className={botaoSecundario}
-                          >
-                            {ponto.status === 'Ativo' ? 'Desativar' : 'Ativar'}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => abrirEdicao(ponto)}
-                            className={botaoSecundario}
-                          >
-                            ✎ Editar
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => excluirPonto(ponto.id)}
-                            className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-                              modoClaro
-                                ? 'border-red-200 text-red-600 hover:bg-red-50'
-                                : 'border-red-400/20 text-red-300 hover:bg-red-400/10'
-                            }`}
-                          >
-                            × Excluir
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  )
-                })}
-              </div>
-            )}
-          </section>
-
-          <p className={`mt-6 pb-4 text-center text-xs ${textoDiscreto}`}>
-            E-Ciclo · Painel de gerenciamento de pontos de coleta
-          </p>
-        </main>
-      </div>
-
-      {/* Modal de cadastro e edição */}
-
-      {modalAberto && (
+  const modalPonto = modalAberto ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm"
           onMouseDown={(evento) => {
@@ -1143,7 +527,323 @@ export default function PontosDeColetaAdmin() {
             </form>
           </section>
         </div>
+  ) : null
+
+  return (
+    <AdminLayout
+      className="ec-admin--pontos"
+      titulo="Pontos de coleta"
+      descricao="Cadastre, edite e acompanhe os locais de coleta e os materiais que cada ponto recebe."
+      acao={
+        <button type="button" onClick={abrirNovoPonto} className={botaoPrimario}>
+          <span className="text-lg" aria-hidden="true">+</span>
+          Novo ponto de coleta
+        </button>
+      }
+      overlay={modalPonto}
+    >
+      {() => (
+        <>
+          {erro && <div role="alert" className="mb-5 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-400">{erro}</div>}
+          {carregandoPontos && <p role="status" className="mb-4 text-sm">Carregando pontos cadastrados...</p>}
+          <p className="ea-demo-note mb-6">Dados compartilhados via API e armazenados no Railway</p>
+          {/* Indicadores */}
+
+          <section className="ec-admin-stats mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {[
+              {
+                titulo: 'Total de pontos',
+                valor: pontos.length,
+                icone: '⌖',
+                detalhe: 'Locais cadastrados no sistema',
+                cor: 'emerald',
+              },
+              {
+                titulo: 'Pontos ativos',
+                valor: totalAtivos,
+                icone: '✓',
+                detalhe: 'Recebendo materiais',
+                cor: 'emerald',
+              },
+              {
+                titulo: 'Pontos inativos',
+                valor: totalInativos,
+                icone: '!',
+                detalhe: 'Temporariamente indisponíveis',
+                cor: 'amber',
+              },
+            ].map((indicador) => (
+              <div
+                key={indicador.titulo}
+                className={`rounded-2xl border p-5 transition hover:-translate-y-0.5 hover:shadow-lg ${fundoPainel}`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className={`text-sm font-medium ${textoSecundario}`}>
+                    {indicador.titulo}
+                  </p>
+
+                  <span
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl text-xl ${
+                      indicador.cor === 'amber'
+                        ? 'bg-amber-400/10 text-amber-500'
+                        : 'bg-emerald-400/10 text-emerald-500'
+                    }`}
+                  >
+                    {indicador.icone}
+                  </span>
+                </div>
+
+                <p
+                  className={`mt-4 text-3xl font-extrabold ${
+                    indicador.cor === 'amber'
+                      ? modoClaro
+                        ? 'text-amber-600'
+                        : 'text-amber-300'
+                      : modoClaro
+                        ? 'text-emerald-700'
+                        : 'text-emerald-300'
+                  }`}
+                >
+                  {indicador.valor}
+                </p>
+
+                <p className={`mt-2 text-xs ${textoDiscreto}`}>
+                  {indicador.detalhe}
+                </p>
+              </div>
+            ))}
+          </section>
+
+          {/* Busca e gerenciamento */}
+
+          <section className={`mb-6 rounded-2xl border p-5 sm:p-6 ${fundoPainel}`}>
+            <div className="mb-5">
+              <h2 className={`text-lg font-bold ${textoPrincipal}`}>
+                Buscar e filtrar
+              </h2>
+              <p className={`mt-1 text-sm ${textoSecundario}`}>
+                Encontre pontos pelo nome, endereço, material ou status.
+              </p>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-[1fr_240px]">
+              <div>
+                <label
+                  htmlFor="busca-pontos"
+                  className={`mb-2 block text-sm font-semibold ${textoSecundario}`}
+                >
+                  Nome, endereço ou material
+                </label>
+
+                <div className="relative">
+                  <span className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${textoDiscreto}`}>
+                    ⌕
+                  </span>
+
+                  <input
+                    id="busca-pontos"
+                    type="search"
+                    value={busca}
+                    onChange={(evento) => setBusca(evento.target.value)}
+                    placeholder="Ex.: Centro, plástico, eletrônicos..."
+                    className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 ${fundoCampo}`}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="filtro-status-pontos"
+                  className={`mb-2 block text-sm font-semibold ${textoSecundario}`}
+                >
+                  Status do ponto
+                </label>
+
+                <select
+                  id="filtro-status-pontos"
+                  value={filtroStatus}
+                  onChange={(evento) => setFiltroStatus(evento.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 ${fundoCampo}`}
+                >
+                  <option value="Todos">Todos os status</option>
+                  <option value="Ativo">Ativos</option>
+                  <option value="Inativo">Inativos</option>
+                </select>
+              </div>
+            </div>
+
+            {(busca || filtroStatus !== 'Todos') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setBusca('')
+                  setFiltroStatus('Todos')
+                }}
+                className="mt-4 text-sm font-semibold text-emerald-600 transition hover:text-emerald-500"
+              >
+                Limpar filtros ×
+              </button>
+            )}
+          </section>
+
+          {/* Lista de pontos */}
+
+          <section className={`overflow-hidden rounded-2xl border ${fundoPainel}`}>
+            <div
+              className={`flex flex-col gap-3 border-b px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 ${borda}`}
+            >
+              <div>
+                <h2 className={`text-lg font-bold ${textoPrincipal}`}>
+                  Locais cadastrados
+                </h2>
+                <p className={`mt-1 text-sm ${textoSecundario}`}>
+                  Gerencie os pontos disponíveis para a coleta.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-fit rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-600">
+                  {pontosFiltrados.length}{' '}
+                  {pontosFiltrados.length === 1 ? 'resultado' : 'resultados'}
+                </span>
+              </div>
+            </div>
+
+            {pontosFiltrados.length === 0 ? (
+              <div className="px-6 py-16 text-center">
+                <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl ${fundoSecundario}`}>
+                  🔎
+                </div>
+
+                <h3 className={`text-lg font-bold ${textoPrincipal}`}>
+                  Nenhum ponto encontrado
+                </h3>
+
+                <p className={`mx-auto mt-2 max-w-sm text-sm leading-6 ${textoSecundario}`}>
+                  Não encontramos pontos com esses critérios. Tente alterar a
+                  busca ou selecionar outro status.
+                </p>
+
+                {(busca || filtroStatus !== 'Todos') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBusca('')
+                      setFiltroStatus('Todos')
+                    }}
+                    className="mt-5 rounded-xl bg-emerald-400 px-4 py-2.5 text-sm font-bold text-[#07110b] transition hover:bg-emerald-300"
+                  >
+                    Limpar filtros
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-0">
+                {pontosFiltrados.map((ponto) => {
+                  const materiais = normalizarMateriais(ponto.materiais)
+
+                  return (
+                    <article
+                      key={ponto.id}
+                      className={`border-t p-5 transition first:border-t-0 sm:p-6 ${
+                        modoClaro
+                          ? 'border-slate-200 hover:bg-slate-50'
+                          : 'border-white/5 hover:bg-white/[0.025]'
+                      }`}
+                    >
+                      <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-center">
+                        <div className="flex min-w-0 gap-4">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/10 text-2xl text-emerald-500">
+                            ♻
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className={`font-bold ${textoPrincipal}`}>
+                                {ponto.nome || 'Ponto sem nome'}
+                              </h3>
+
+                              <span
+                                className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${
+                                  statusEstilo[ponto.status]
+                                }`}
+                              >
+                                {ponto.status}
+                              </span>
+                            </div>
+
+                            <p className={`mt-2 break-words text-sm ${textoSecundario}`}>
+                              <span className="mr-2">⌖</span>
+                              {ponto.endereco || 'Endereço não informado'}
+                            </p>
+
+                            <p className={`mt-1 text-sm ${textoSecundario}`}>
+                              <span className="mr-2">◷</span>
+                              {ponto.horario || 'Horário não informado'}
+                            </p>
+
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {materiais.length > 0 ? (
+                                materiais.map((material, indice) => (
+                                  <span
+                                    key={`${material}-${indice}`}
+                                    className={`rounded-lg border px-2.5 py-1 text-xs ${borda} ${textoSecundario}`}
+                                  >
+                                    {material}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className={`text-xs ${textoDiscreto}`}>
+                                  Nenhum material informado
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex shrink-0 flex-wrap gap-2 xl:justify-end">
+                          <button
+                            type="button"
+                            onClick={() => alternarStatus(ponto.id)}
+                            className={botaoSecundario}
+                          >
+                            {ponto.status === 'Ativo' ? 'Desativar' : 'Ativar'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => abrirEdicao(ponto)}
+                            className={botaoSecundario}
+                          >
+                            ✎ Editar
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => excluirPonto(ponto.id)}
+                            className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                              modoClaro
+                                ? 'border-red-200 text-red-600 hover:bg-red-50'
+                                : 'border-red-400/20 text-red-300 hover:bg-red-400/10'
+                            }`}
+                          >
+                            × Excluir
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+
+          <p className={`mt-6 pb-4 text-center text-xs ${textoDiscreto}`}>
+            E-Ciclo · Painel de gerenciamento de pontos de coleta
+          </p>
+
+        </>
       )}
-    </div>
+    </AdminLayout>
   )
 }
